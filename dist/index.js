@@ -467,6 +467,11 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     // put(this.x, this.y, !this.colour);
                                                     newX = this_1.x + this_1.velX;
                                                     newY = this_1.y + this_1.velY;
+                                                    if (Math.round(newX) == Math.round(this_1.x) && Math.round(newY) == Math.round(this_1.y)) {
+                                                        this_1.x = newX;
+                                                        this_1.y = newY;
+                                                        return [2 /*return*/, "continue"];
+                                                    }
                                                     hitBomb = false;
                                                     hitPaddle = false;
                                                     _i = 0, bombs_2 = bombs;
@@ -602,7 +607,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     });
                 };
                 Bomb.prototype.collides = function (x, y) {
-                    return Math.abs(x - this.x) < 3 && Math.abs(y - this.y) < 3;
+                    return Math.abs(Math.round(x) - this.x) < 3 && Math.abs(Math.round(y) - this.y) < 3;
                 };
                 return Bomb;
             }());

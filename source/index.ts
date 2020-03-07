@@ -303,6 +303,13 @@ class Ball {
 			var newX = this.x + this.velX;
 			var newY = this.y + this.velY;
 
+			if(Math.round(newX)==Math.round(this.x)&&Math.round(newY)==Math.round(this.y)){
+				this.x = newX;
+				this.y = newY;
+
+				continue;
+			}
+
 			let hitBomb = false;
 			let hitPaddle = false;
 
@@ -421,7 +428,7 @@ class Bomb {
 	}
 
 	collides(x:number, y:number):boolean {
-		return Math.abs(x-this.x)<3&&Math.abs(y-this.y)<3;
+		return Math.abs(Math.round(x)-this.x)<3&&Math.abs(Math.round(y)-this.y)<3;
 	}
 }
 

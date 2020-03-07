@@ -6,8 +6,9 @@ System.register([], function (exports_1, context_1) {
         setters: [],
         execute: function () {
             (function (Effect) {
-                Effect[Effect["boom"] = 0] = "boom";
-                Effect[Effect["blip"] = 1] = "blip";
+                Effect[Effect["debug"] = 0] = "debug";
+                Effect[Effect["boom"] = 1] = "boom";
+                Effect[Effect["blip"] = 2] = "blip";
             })(Effect || (Effect = {}));
             exports_1("Effect", Effect);
             Manager = /** @class */ (function () {
@@ -19,6 +20,7 @@ System.register([], function (exports_1, context_1) {
                     catch (error) {
                         throw Error('you no have sound :( bad browser!');
                     }
+                    this.load(Effect.debug, 'sounds/debug.mp3');
                     this.load(Effect.boom, 'sounds/explosion1.wav');
                     this.load(Effect.boom, 'sounds/explosion2.wav');
                     this.load(Effect.boom, 'sounds/explosion3.wav');
