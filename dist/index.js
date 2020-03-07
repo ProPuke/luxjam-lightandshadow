@@ -459,7 +459,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                         return [2 /*return*/];
                                     trailLength = Math.min(this.speed, 20);
                                     _loop_1 = function () {
-                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, _a, paddles_2, paddle, wasScreenEdge, _b, _c, history_1, colX, colY, _d, _e, history_2, _f, _g, history_3, x_1, y_1;
+                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, _a, _b, history_1, colX, colY, _c, _d, history_2, _e, _f, history_3, _g, paddles_2, paddle, paddlePhase, x_1, y_1;
                                         return __generator(this, function (_h) {
                                             switch (_h.label) {
                                                 case 0:
@@ -496,36 +496,38 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     if (!hitBomb && collide(this_1.colour, newX, newY)) {
                                                         if (sounds)
                                                             sounds.playEffect(sound.Effect.blip, 0.2);
-                                                        for (_a = 0, paddles_2 = paddles; _a < paddles_2.length; _a++) {
-                                                            paddle = paddles_2[_a];
-                                                            if (paddle.collides(newX, newY)) {
-                                                                hitPaddle = true;
-                                                            }
-                                                        }
                                                         wasScreenEdge = !inbounds(newX, newY);
-                                                        for (_b = 0, _c = this_1.history; _b < _c.length; _b++) {
-                                                            history_1 = _c[_b];
+                                                        for (_a = 0, _b = this_1.history; _a < _b.length; _a++) {
+                                                            history_1 = _b[_a];
                                                             put(history_1[0], history_1[1], !this_1.colour);
                                                         }
                                                         colX = collide(this_1.colour, newX, this_1.y);
                                                         colY = collide(this_1.colour, this_1.x, newY);
-                                                        for (_d = 0, _e = this_1.history; _d < _e.length; _d++) {
-                                                            history_2 = _e[_d];
+                                                        for (_c = 0, _d = this_1.history; _c < _d.length; _c++) {
+                                                            history_2 = _d[_c];
                                                             put(history_2[0], history_2[1], this_1.colour);
                                                         }
                                                         if (colX)
                                                             this_1.velX = clamp(this_1.velX * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
                                                         if (colY)
                                                             this_1.velY = clamp(this_1.velY * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
-                                                        newX = this_1.x + this_1.velX;
-                                                        newY = this_1.y + this_1.velY;
                                                         if (colX && colY) {
-                                                            for (_f = 0, _g = this_1.history; _f < _g.length; _f++) {
-                                                                history_3 = _g[_f];
+                                                            for (_e = 0, _f = this_1.history; _e < _f.length; _e++) {
+                                                                history_3 = _f[_e];
                                                                 put(history_3[0], history_3[1], !this_1.colour);
                                                             }
                                                             this_1.history = [];
                                                         }
+                                                        for (_g = 0, paddles_2 = paddles; _g < paddles_2.length; _g++) {
+                                                            paddle = paddles_2[_g];
+                                                            if (paddle.collides(newX, newY)) {
+                                                                hitPaddle = true;
+                                                                paddlePhase = clamp((newY - paddle.y) / paddle.height, 0.0, 1.0);
+                                                                this_1.velY = clamp(this_1.velY - 1.5 + paddlePhase * 3.0, -1.5, 1.5);
+                                                            }
+                                                        }
+                                                        newX = this_1.x + this_1.velX;
+                                                        newY = this_1.y + this_1.velY;
                                                         if (wasScreenEdge || hitPaddle) {
                                                             newX = this_1.x;
                                                             newY = this_1.y;

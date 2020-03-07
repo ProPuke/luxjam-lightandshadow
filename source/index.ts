@@ -330,20 +330,14 @@ class Ball {
 
 				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
 
-				for(const paddle of paddles){
-					if(paddle.collides(newX, newY)){
-						hitPaddle = true;
-					}
-				}
-
 				const wasScreenEdge = !inbounds(newX, newY);
 
 				for(const history of this.history){
 					put(history[0], history[1], !this.colour);
 				}
 
-				const colX = collide(this.colour, newX, this.y);
-				const colY = collide(this.colour, this.x, newY);
+				let colX = collide(this.colour, newX, this.y);
+				let colY = collide(this.colour, this.x, newY);
 
 				for(const history of this.history){
 					put(history[0], history[1], this.colour);
@@ -352,15 +346,24 @@ class Ball {
 				if(colX) this.velX = clamp(this.velX * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
 				if(colY) this.velY = clamp(this.velY * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
 
-				newX = this.x + this.velX;
-				newY = this.y + this.velY;
-
 				if(colX&&colY){
 					for(const history of this.history){
 						put(history[0], history[1], !this.colour);
 					}
 					this.history = [];
 				}
+
+				for(const paddle of paddles){
+					if(paddle.collides(newX, newY)){
+						hitPaddle = true;
+						const paddlePhase = clamp((newY-paddle.y)/paddle.height, 0.0, 1.0);
+
+						this.velY = clamp(this.velY - 1.5 + paddlePhase * 3.0, -1.5, 1.5);
+					}
+				}
+
+				newX = this.x + this.velX;
+				newY = this.y + this.velY;
 
 				if(wasScreenEdge||hitPaddle){
 					newX = this.x;
