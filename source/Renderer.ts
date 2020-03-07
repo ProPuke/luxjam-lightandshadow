@@ -31,6 +31,9 @@ export class Renderer {
 	put(x:number, y:number, colour:boolean) {
 		x = Math.round(x);
 		y = Math.round(y);
+
+		if(x<0||y<0||x>=this.width||y>=this.height) return;
+
 		const index = (x+y*this.width)*4;
 
 		this.buffer.data[index+0] =

@@ -35,7 +35,7 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
             if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
     };
-    var Renderer_js_1, renderer, blit16, top, bottom, Ball, balls;
+    var Renderer_js_1, renderer, blit16, Input, aiInput, input, top, bottom, Paddle, Ball, paddles, balls, frame;
     var __moduleName = context_1 && context_1.id;
     function put_text(x, y, message, colour, glyphs, glyph_start, glyph_width, glyph_height) {
         var cx = x;
@@ -63,7 +63,7 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
     function inbounds(x, y) {
         x = Math.round(x);
         y = Math.round(y);
-        if (x >= 0 && y >= 0 && x < renderer.width && y < renderer.height)
+        if (x >= 0 && y >= top && x < renderer.width && y < renderer.height - bottom)
             return true;
         return false;
     }
@@ -74,6 +74,38 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
     }
     function put(x, y, colour) {
         renderer.put(x, y, colour);
+    }
+    function put_clipped(x, y, colour) {
+        x = Math.round(x);
+        y = Math.round(y);
+        if (y < top || y >= renderer.height - bottom)
+            return;
+        renderer.put(x, y, colour);
+    }
+    function boom(x, y, colour) {
+        put_clipped(x, y, colour);
+        put_clipped(x + 1, y, colour);
+        put_clipped(x + 1, y + 1, colour);
+        put_clipped(x + 1, y - 1, colour);
+        put_clipped(x, y + 1, colour);
+        put_clipped(x - 1, y, colour);
+        put_clipped(x - 1, y + 1, colour);
+        put_clipped(x - 1, y - 1, colour);
+        put_clipped(x, y - 1, colour);
+        put_clipped(x + 2, y, colour);
+        put_clipped(x - 2, y, colour);
+        put_clipped(x, y + 2, colour);
+        put_clipped(x, y - 2, colour);
+        if (true) {
+            put_clipped(x + 2, y - 1, colour);
+            put_clipped(x + 2, y + 1, colour);
+            put_clipped(x - 2, y - 1, colour);
+            put_clipped(x - 2, y + 1, colour);
+            put_clipped(x - 1, y + 2, colour);
+            put_clipped(x + 1, y + 2, colour);
+            put_clipped(x - 1, y - 2, colour);
+            put_clipped(x + 1, y - 2, colour);
+        }
     }
     function clear(colour) {
         renderer.clear(colour);
@@ -160,6 +192,8 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                         _a.sent();
                         balls.push(new Ball(true, renderer.width - 5, top + 10, -1, 1));
                         balls.push(new Ball(false, 5, renderer.height - top - 10, 1, -1));
+                        paddles.push(new Paddle(false, 2, renderer.height / 2 - 8, 16));
+                        paddles.push(new Paddle(true, renderer.width - 2, renderer.height / 2 - 8, 16));
                         swap();
                         return [2 /*return*/];
                 }
@@ -168,19 +202,47 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
     }
     function run() {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, balls_1, ball;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var doAi, _i, balls_1, ball, targetY, targetY, _a, paddles_1, paddle;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         if (!true) return [3 /*break*/, 2];
+                        doAi = frame % 2 == 0 && paddles.length > 0;
+                        if (doAi) {
+                            aiInput.up = false;
+                            aiInput.down = false;
+                        }
                         for (_i = 0, balls_1 = balls; _i < balls_1.length; _i++) {
                             ball = balls_1[_i];
                             ball.update();
+                            if (doAi) {
+                                if (ball.x < renderer.width / 2 && ball.velX < 0) {
+                                    if (ball.y < paddles[0].y + paddles[0].height / 2) {
+                                        aiInput.up = true;
+                                    }
+                                    else {
+                                        aiInput.down = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (paddles.length > 0) {
+                            targetY = (aiInput.up ? -8 : 0) + (aiInput.down ? +8 : 0);
+                            paddles[0].velY = paddles[0].velY * 0.7 + targetY * 0.3;
+                        }
+                        if (paddles.length > 1) {
+                            targetY = (input.up ? -8 : 0) + (input.down ? +8 : 0);
+                            paddles[1].velY = paddles[1].velY * 0.7 + targetY * 0.3;
+                        }
+                        for (_a = 0, paddles_1 = paddles; _a < paddles_1.length; _a++) {
+                            paddle = paddles_1[_a];
+                            paddle.update();
                         }
                         swap();
                         return [4 /*yield*/, sleep(50)];
                     case 1:
-                        _a.sent();
+                        _b.sent();
+                        frame++;
                         return [3 /*break*/, 0];
                     case 2: return [2 /*return*/];
                 }
@@ -198,13 +260,97 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
         ],
         execute: function () {
             renderer = new Renderer_js_1.Renderer(document.getElementsByTagName('canvas')[0], 128, 92);
+            Input = /** @class */ (function () {
+                function Input() {
+                    this.up = false;
+                    this.down = false;
+                }
+                return Input;
+            }());
+            ;
+            aiInput = new Input();
+            input = new Input();
+            window.addEventListener("keydown", function (event) {
+                switch (event.key) {
+                    case 'w':
+                    case 'ArrowUp':
+                        input.up = true;
+                        break;
+                    case 's':
+                    case 'ArrowDown':
+                        input.down = true;
+                        break;
+                }
+            });
+            window.addEventListener("keyup", function (event) {
+                switch (event.key) {
+                    case 'w':
+                    case 'ArrowUp':
+                        input.up = false;
+                        break;
+                    case 's':
+                    case 'ArrowDown':
+                        input.down = false;
+                        break;
+                }
+            });
             top = 10;
             bottom = 10;
+            Paddle = /** @class */ (function () {
+                function Paddle(colour, x, y, height) {
+                    this.velX = 0;
+                    this.velY = 0;
+                    this.colour = colour;
+                    this.x = x;
+                    this.y = y;
+                    this.height = height;
+                }
+                Paddle.prototype.update = function () {
+                    var newX = clamp(this.x + this.velX, 0, renderer.width - 1);
+                    var newY = this.y;
+                    while (newY - 1 >= this.y + this.velY) {
+                        if (collide(this.colour, this.x, newY - 1)) {
+                            this.velY = Math.abs(this.velY) * 0.8;
+                            break;
+                        }
+                        else {
+                            newY -= 1;
+                        }
+                    }
+                    while (newY + 1 <= this.y + this.velY) {
+                        if (collide(this.colour, this.x, newY + this.height)) {
+                            this.velY = -Math.abs(this.velY) * 0.8;
+                            break;
+                        }
+                        else {
+                            newY += 1;
+                        }
+                    }
+                    while (newX - 1 >= this.y + this.velX) {
+                        if (collide(this.colour, this.x, newX - 1)) {
+                            this.velX *= -0.5;
+                            break;
+                        }
+                        else {
+                            newX -= 1;
+                        }
+                    }
+                    for (var y = 0; y < this.height; y++) {
+                        put(this.x, this.y + y, !this.colour);
+                    }
+                    this.x = newX;
+                    this.y = newY;
+                    for (var y = 0; y < this.height; y++) {
+                        put(this.x, this.y + y, this.colour);
+                    }
+                };
+                return Paddle;
+            }());
             Ball = /** @class */ (function () {
                 function Ball(colour, x, y, velX, velY) {
                     this.velX = 0;
                     this.velY = 0;
-                    this.speed = 5;
+                    this.speed = 2;
                     this.history = [[0, 0]];
                     this.colour = colour;
                     this.x = x;
@@ -231,20 +377,35 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                         var newX = this.x + this.velX;
                         var newY = this.y + this.velY;
                         if (collide(this.colour, newX, newY)) {
+                            for (var _i = 0, _a = this.history; _i < _a.length; _i++) {
+                                var history_1 = _a[_i];
+                                put(history_1[0], history_1[1], !this.colour);
+                            }
                             var colX = collide(this.colour, newX, this.y);
                             var colY = collide(this.colour, this.x, newY);
+                            for (var _b = 0, _c = this.history; _b < _c.length; _b++) {
+                                var history_2 = _c[_b];
+                                put(history_2[0], history_2[1], this.colour);
+                            }
                             if (colX)
                                 this.velX = clamp(this.velX * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
                             if (colY)
                                 this.velY = clamp(this.velY * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
-                            if (!inbounds(newX, newY)) {
-                                if (balls.length < 10 && Math.random() < 1 / 10.0) {
-                                    balls.push(new Ball(this.colour, this.x, this.y, this.velX, this.velY));
+                            if (colX && colY) {
+                                for (var _d = 0, _e = this.history; _d < _e.length; _d++) {
+                                    var history_3 = _e[_d];
+                                    put(history_3[0], history_3[1], !this.colour);
                                 }
+                                this.history = [];
+                            }
+                            if (!inbounds(newX, newY)) {
                                 newX = this.x;
                                 newY = this.y;
                             }
-                            this.speed = Math.min(this.speed + 0.03, 10);
+                            else {
+                                boom(this.x, this.y, !this.colour);
+                            }
+                            // this.speed = Math.min(this.speed + 0.5, 10);
                         }
                         this.x = newX;
                         this.y = newY;
@@ -257,8 +418,10 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                 };
                 return Ball;
             }());
+            paddles = [];
             balls = [];
             play_intro(true);
+            frame = 0;
             run();
         }
     };

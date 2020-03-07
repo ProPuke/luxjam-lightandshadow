@@ -25,6 +25,8 @@ System.register([], function (exports_1, context_1) {
                 Renderer.prototype.put = function (x, y, colour) {
                     x = Math.round(x);
                     y = Math.round(y);
+                    if (x < 0 || y < 0 || x >= this.width || y >= this.height)
+                        return;
                     var index = (x + y * this.width) * 4;
                     this.buffer.data[index + 0] =
                         this.buffer.data[index + 1] =
