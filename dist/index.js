@@ -35,7 +35,7 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
             if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
     };
-    var Renderer_js_1, renderer, blit16, Input, aiInput, input, top, bottom, Paddle, Ball, paddles, balls, frame;
+    var Renderer_js_1, renderer, blit16, Input, aiInput, input, top, bottom, Paddle, Ball, Bomb, paddles, balls, bombs, frame;
     var __moduleName = context_1 && context_1.id;
     function put_text(x, y, message, colour, glyphs, glyph_start, glyph_width, glyph_height) {
         var cx = x;
@@ -81,6 +81,65 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
         if (y < top || y >= renderer.height - bottom)
             return;
         renderer.put(x, y, colour);
+    }
+    function bigBoom(ox, oy, colour, haveKids) {
+        if (haveKids === void 0) { haveKids = true; }
+        return __awaiter(this, void 0, void 0, function () {
+            var radius, i, i_1, x, y, i_2, x, y;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        radius = 10;
+                        if (haveKids) {
+                            for (i = 0; i < 3; i++) {
+                                setTimeout(function () {
+                                    bigBoom(ox + Math.random() * (radius * 2) - radius, oy + Math.random() * (radius * 2) - radius, colour, false);
+                                }, 200 + i * 100);
+                            }
+                        }
+                        i_1 = 1;
+                        _a.label = 1;
+                    case 1:
+                        if (!(i_1 < radius)) return [3 /*break*/, 4];
+                        for (x = -i_1; x < i_1; x++) {
+                            for (y = -i_1; y < i_1; y++) {
+                                if (Math.sqrt(x * x + y * y) <= i_1) {
+                                    put_clipped(ox + x, oy + y, colour);
+                                }
+                            }
+                        }
+                        swap();
+                        return [4 /*yield*/, sleep(50)];
+                    case 2:
+                        _a.sent();
+                        _a.label = 3;
+                    case 3:
+                        i_1 += 2;
+                        return [3 /*break*/, 1];
+                    case 4:
+                        i_2 = 1;
+                        _a.label = 5;
+                    case 5:
+                        if (!(i_2 < radius)) return [3 /*break*/, 8];
+                        for (x = -i_2; x < i_2; x++) {
+                            for (y = -i_2; y < i_2; y++) {
+                                if (Math.sqrt(x * x + y * y) <= i_2) {
+                                    put_clipped(ox + x, oy + y, !colour);
+                                }
+                            }
+                        }
+                        swap();
+                        return [4 /*yield*/, sleep(50)];
+                    case 6:
+                        _a.sent();
+                        _a.label = 7;
+                    case 7:
+                        i_2 += 2;
+                        return [3 /*break*/, 5];
+                    case 8: return [2 /*return*/];
+                }
+            });
+        });
     }
     function boom(x, y, colour) {
         put_clipped(x, y, colour);
@@ -182,11 +241,9 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                     case 10:
                         _a.sent();
                         _a.label = 11;
-                    case 11:
-                        print(renderer.width / 2 + 2, renderer.height / 2 - 8, true, "//TODO:put game here");
-                        swap();
-                        // if(!fast)await sleep(1500);
-                        return [4 /*yield*/, sleep(1500)];
+                    case 11: 
+                    // if(!fast)await sleep(1500);
+                    return [4 /*yield*/, sleep(1500)];
                     case 12:
                         // if(!fast)await sleep(1500);
                         _a.sent();
@@ -202,19 +259,20 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
     }
     function run() {
         return __awaiter(this, void 0, void 0, function () {
-            var doAi, _i, balls_1, ball, targetY, targetY, _a, paddles_1, paddle;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var doAi, pending, _i, balls_1, ball, targetY, targetY, _a, paddles_1, paddle, _b, bombs_1, bomb;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        if (!true) return [3 /*break*/, 2];
+                        if (!true) return [3 /*break*/, 3];
                         doAi = frame % 2 == 0 && paddles.length > 0;
                         if (doAi) {
                             aiInput.up = false;
                             aiInput.down = false;
                         }
+                        pending = [];
                         for (_i = 0, balls_1 = balls; _i < balls_1.length; _i++) {
                             ball = balls_1[_i];
-                            ball.update();
+                            pending.push(ball.update());
                             if (doAi) {
                                 if (ball.x < renderer.width / 2 && ball.velX < 0) {
                                     if (ball.y < paddles[0].y + paddles[0].height / 2) {
@@ -226,6 +284,9 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                                 }
                             }
                         }
+                        return [4 /*yield*/, Promise.all(pending)];
+                    case 1:
+                        _c.sent();
                         if (paddles.length > 0) {
                             targetY = (aiInput.up ? -8 : 0) + (aiInput.down ? +8 : 0);
                             paddles[0].velY = paddles[0].velY * 0.7 + targetY * 0.3;
@@ -238,13 +299,17 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                             paddle = paddles_1[_a];
                             paddle.update();
                         }
+                        for (_b = 0, bombs_1 = bombs; _b < bombs_1.length; _b++) {
+                            bomb = bombs_1[_b];
+                            bomb.update();
+                        }
                         swap();
                         return [4 /*yield*/, sleep(50)];
-                    case 1:
-                        _b.sent();
+                    case 2:
+                        _c.sent();
                         frame++;
                         return [3 /*break*/, 0];
-                    case 2: return [2 /*return*/];
+                    case 3: return [2 /*return*/];
                 }
             });
         });
@@ -368,58 +433,155 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                     put(this.x, this.y, this.colour);
                 };
                 Ball.prototype.update = function () {
-                    if (!this.velX && !this.velY)
-                        return;
-                    var trailLength = Math.min(this.speed, 20);
-                    for (var i = this.speed; i > 0; i--) {
-                        this.history.push([this.x, this.y]);
-                        // put(this.x, this.y, !this.colour);
-                        var newX = this.x + this.velX;
-                        var newY = this.y + this.velY;
-                        if (collide(this.colour, newX, newY)) {
-                            for (var _i = 0, _a = this.history; _i < _a.length; _i++) {
-                                var history_1 = _a[_i];
-                                put(history_1[0], history_1[1], !this.colour);
+                    return __awaiter(this, void 0, void 0, function () {
+                        var trailLength, _loop_1, this_1, newX, newY, i;
+                        var _this = this;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (!this.velX && !this.velY)
+                                        return [2 /*return*/];
+                                    trailLength = Math.min(this.speed, 20);
+                                    _loop_1 = function () {
+                                        var _i, bombs_2, bomb, wasScreenEdge, _a, _b, history_1, colX, colY, _c, _d, history_2, _e, _f, history_3, x_1, y_1;
+                                        return __generator(this, function (_g) {
+                                            switch (_g.label) {
+                                                case 0:
+                                                    this_1.history.push([this_1.x, this_1.y]);
+                                                    // put(this.x, this.y, !this.colour);
+                                                    newX = this_1.x + this_1.velX;
+                                                    newY = this_1.y + this_1.velY;
+                                                    _i = 0, bombs_2 = bombs;
+                                                    _g.label = 1;
+                                                case 1:
+                                                    if (!(_i < bombs_2.length)) return [3 /*break*/, 4];
+                                                    bomb = bombs_2[_i];
+                                                    if (!bomb.collides(newX, newY)) return [3 /*break*/, 3];
+                                                    return [4 /*yield*/, bomb.explode(this_1.colour)];
+                                                case 2:
+                                                    _g.sent();
+                                                    this_1.velX *= -1;
+                                                    this_1.velY *= -1;
+                                                    newX = this_1.x + this_1.velX;
+                                                    newY = this_1.y + this_1.velY;
+                                                    _g.label = 3;
+                                                case 3:
+                                                    _i++;
+                                                    return [3 /*break*/, 1];
+                                                case 4:
+                                                    if (collide(this_1.colour, newX, newY)) {
+                                                        wasScreenEdge = !inbounds(newX, newY);
+                                                        for (_a = 0, _b = this_1.history; _a < _b.length; _a++) {
+                                                            history_1 = _b[_a];
+                                                            put(history_1[0], history_1[1], !this_1.colour);
+                                                        }
+                                                        colX = collide(this_1.colour, newX, this_1.y);
+                                                        colY = collide(this_1.colour, this_1.x, newY);
+                                                        for (_c = 0, _d = this_1.history; _c < _d.length; _c++) {
+                                                            history_2 = _d[_c];
+                                                            put(history_2[0], history_2[1], this_1.colour);
+                                                        }
+                                                        if (colX)
+                                                            this_1.velX = clamp(this_1.velX * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
+                                                        if (colY)
+                                                            this_1.velY = clamp(this_1.velY * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
+                                                        newX = this_1.x + this_1.velX;
+                                                        newY = this_1.y + this_1.velY;
+                                                        if (colX && colY) {
+                                                            for (_e = 0, _f = this_1.history; _e < _f.length; _e++) {
+                                                                history_3 = _f[_e];
+                                                                put(history_3[0], history_3[1], !this_1.colour);
+                                                            }
+                                                            this_1.history = [];
+                                                        }
+                                                        if (wasScreenEdge) {
+                                                            newX = this_1.x;
+                                                            newY = this_1.y;
+                                                        }
+                                                        else {
+                                                            boom(this_1.x, this_1.y, !this_1.colour);
+                                                            if (Math.random() < 1 / 5.0) {
+                                                                x_1 = this_1.x + (this_1.colour ? 4 : -4);
+                                                                y_1 = this_1.y;
+                                                                setTimeout(function () {
+                                                                    if (Math.abs(x_1 - _this.x) > 10 && Math.abs(y_1 - _this.y) > 10) {
+                                                                        bombs.push(new Bomb(x_1, y_1));
+                                                                    }
+                                                                }, 1000);
+                                                            }
+                                                        }
+                                                        // this.speed = Math.min(this.speed + 0.5, 10);
+                                                    }
+                                                    this_1.x = newX;
+                                                    this_1.y = newY;
+                                                    put(this_1.x, this_1.y, this_1.colour);
+                                                    return [2 /*return*/];
+                                            }
+                                        });
+                                    };
+                                    this_1 = this;
+                                    i = this.speed;
+                                    _a.label = 1;
+                                case 1:
+                                    if (!(i > 0)) return [3 /*break*/, 4];
+                                    return [5 /*yield**/, _loop_1()];
+                                case 2:
+                                    _a.sent();
+                                    _a.label = 3;
+                                case 3:
+                                    i--;
+                                    return [3 /*break*/, 1];
+                                case 4:
+                                    while (this.history.length > trailLength) {
+                                        put(this.history[0][0], this.history[0][1], !this.colour);
+                                        this.history.shift();
+                                    }
+                                    return [2 /*return*/];
                             }
-                            var colX = collide(this.colour, newX, this.y);
-                            var colY = collide(this.colour, this.x, newY);
-                            for (var _b = 0, _c = this.history; _b < _c.length; _b++) {
-                                var history_2 = _c[_b];
-                                put(history_2[0], history_2[1], this.colour);
-                            }
-                            if (colX)
-                                this.velX = clamp(this.velX * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
-                            if (colY)
-                                this.velY = clamp(this.velY * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
-                            if (colX && colY) {
-                                for (var _d = 0, _e = this.history; _d < _e.length; _d++) {
-                                    var history_3 = _e[_d];
-                                    put(history_3[0], history_3[1], !this.colour);
-                                }
-                                this.history = [];
-                            }
-                            if (!inbounds(newX, newY)) {
-                                newX = this.x;
-                                newY = this.y;
-                            }
-                            else {
-                                boom(this.x, this.y, !this.colour);
-                            }
-                            // this.speed = Math.min(this.speed + 0.5, 10);
-                        }
-                        this.x = newX;
-                        this.y = newY;
-                        put(this.x, this.y, this.colour);
-                    }
-                    while (this.history.length > trailLength) {
-                        put(this.history[0][0], this.history[0][1], !this.colour);
-                        this.history.shift();
-                    }
+                        });
+                    });
                 };
                 return Ball;
             }());
+            Bomb = /** @class */ (function () {
+                function Bomb(x, y) {
+                    this.frame = 0;
+                    this.x = x;
+                    this.y = y;
+                }
+                Bomb.prototype.update = function () {
+                    this.frame++;
+                    var size = Math.min(this.frame, 5);
+                    var colour = Math.round(frame / 2) % 2 == 0;
+                    for (var x = 0; x < size; x++) {
+                        for (var y = 0; y < size; y++) {
+                            put(this.x - size / 2 + x, this.y - size / 2 + y, colour);
+                        }
+                    }
+                };
+                Bomb.prototype.explode = function (colour) {
+                    return __awaiter(this, void 0, void 0, function () {
+                        var _this = this;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    bombs = bombs.filter(function (existing) { return existing != _this; });
+                                    return [4 /*yield*/, bigBoom(this.x, this.y, colour)];
+                                case 1:
+                                    _a.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    });
+                };
+                Bomb.prototype.collides = function (x, y) {
+                    return Math.abs(x - this.x) < 3 && Math.abs(y - this.y) < 3;
+                };
+                return Bomb;
+            }());
             paddles = [];
             balls = [];
+            bombs = [];
             play_intro(true);
             frame = 0;
             run();

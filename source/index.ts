@@ -54,6 +54,44 @@ function put_clipped(x:number, y:number, colour:boolean) {
 	renderer.put(x, y, colour);
 }
 
+async function bigBoom(ox:number, oy:number, colour:boolean, haveKids = true) {
+	const radius = 10;
+
+	if(haveKids){
+		for(var i=0;i<3;i++){
+			setTimeout(() => {
+				bigBoom(ox + Math.random()*(radius*2)-radius, oy + Math.random()*(radius*2)-radius, colour, false);
+			}, 200+i*100);
+		}
+	}
+
+	for(let i=1;i<radius;i+=2){
+		for(let x=-i;x<i;x++){
+			for(let y=-i;y<i;y++){
+				if(Math.sqrt(x*x+y*y)<=i){
+					put_clipped(ox+x, oy+y, colour);
+				}
+			}
+		}
+
+		swap();
+		await sleep(50);
+	}
+
+	for(let i=1;i<radius;i+=2){
+		for(let x=-i;x<i;x++){
+			for(let y=-i;y<i;y++){
+				if(Math.sqrt(x*x+y*y)<=i){
+					put_clipped(ox+x, oy+y, !colour);
+				}
+			}
+		}
+
+		swap();
+		await sleep(50);
+	}
+}
+
 function boom(x:number, y:number, colour:boolean) {
 	put_clipped(x, y, colour);
 	put_clipped(x+1, y, colour);
@@ -235,7 +273,7 @@ class Ball {
 		put(this.x, this.y, this.colour);
 	}
 
-	update() {
+	async update() {
 		if(!this.velX&&!this.velY) return;
 
 		const trailLength = Math.min(this.speed, 20);
@@ -248,7 +286,22 @@ class Ball {
 			var newX = this.x + this.velX;
 			var newY = this.y + this.velY;
 
+			for(const bomb of bombs){
+				if(bomb.collides(newX, newY)){
+					await bomb.explode(this.colour);
+
+					this.velX *= -1;
+					this.velY *= -1;
+
+					newX = this.x + this.velX;
+					newY = this.y + this.velY;
+				}
+			}
+
 			if(collide(this.colour, newX, newY)){
+
+				const wasScreenEdge = !inbounds(newX, newY);
+
 				for(const history of this.history){
 					put(history[0], history[1], !this.colour);
 				}
@@ -263,6 +316,9 @@ class Ball {
 				if(colX) this.velX = clamp(this.velX * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
 				if(colY) this.velY = clamp(this.velY * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
 
+				newX = this.x + this.velX;
+				newY = this.y + this.velY;
+
 				if(colX&&colY){
 					for(const history of this.history){
 						put(history[0], history[1], !this.colour);
@@ -270,12 +326,23 @@ class Ball {
 					this.history = [];
 				}
 
-				if(!inbounds(newX, newY)){
+				if(wasScreenEdge){
 					newX = this.x;
 					newY = this.y;
 
 				}else{
 					boom(this.x, this.y, !this.colour);
+
+					if(Math.random()<1/5.0){
+						const x = this.x + (this.colour?4:-4);
+						const y = this.y;
+
+						setTimeout(() => {
+							if(Math.abs(x-this.x)>10&&Math.abs(y-this.y)>10){
+								bombs.push(new Bomb(x, y));
+							}
+						}, 1000);
+					}
 				}
 
 				// this.speed = Math.min(this.speed + 0.5, 10);
@@ -294,8 +361,44 @@ class Ball {
 	}
 }
 
-const paddles:Paddle[] = [];
-const balls:Ball[] = [];
+class Bomb {
+	x:number;
+	y:number;
+
+	frame = 0;
+
+	constructor(x:number, y:number) {
+		this.x = x;
+		this.y = y;
+	}
+
+	update() {
+		this.frame++;
+
+		const size = Math.min(this.frame, 5);
+
+		const colour = Math.round(frame/2)%2==0;
+
+		for(var x=0;x<size;x++) {
+			for(var y=0;y<size;y++) {
+				put(this.x - size/2 + x, this.y - size/2 + y, colour);
+			}
+		}
+	}
+
+	async explode(colour:boolean) {
+		bombs = bombs.filter((existing) => existing != this);
+		await bigBoom(this.x, this.y, colour);
+	}
+
+	collides(x:number, y:number):boolean {
+		return Math.abs(x-this.x)<3&&Math.abs(y-this.y)<3;
+	}
+}
+
+let paddles:Paddle[] = [];
+let balls:Ball[] = [];
+let bombs:Bomb[] = [];
 
 async function play_intro(fast:boolean) {
 	if(!fast)await sleep(1000);
@@ -318,8 +421,6 @@ async function play_intro(fast:boolean) {
 	swap();
 
 	if(!fast)await sleep(1500);
-	print(renderer.width/2+2, renderer.height/2-8, true, "//TODO:put game here");
-	swap();
 
 	// if(!fast)await sleep(1500);
 	await sleep(1500);
@@ -346,17 +447,24 @@ async function run() {
 			aiInput.down = false;
 		}
 
-		for(const ball of balls){
-			ball.update();
-			if(doAi){
-				if(ball.x<renderer.width/2&&ball.velX<0){
-					if(ball.y<paddles[0].y+paddles[0].height/2){
-						aiInput.up = true;
-					}else{
-						aiInput.down = true;
+		{ // update all balls
+
+			const pending:Promise<void>[] = [];
+
+			for(const ball of balls){
+				pending.push(ball.update());
+				if(doAi){
+					if(ball.x<renderer.width/2&&ball.velX<0){
+						if(ball.y<paddles[0].y+paddles[0].height/2){
+							aiInput.up = true;
+						}else{
+							aiInput.down = true;
+						}
 					}
 				}
 			}
+
+			await Promise.all(pending);
 		}
 
 		if(paddles.length>0){
@@ -371,6 +479,10 @@ async function run() {
 
 		for(const paddle of paddles){
 			paddle.update();
+		}
+
+		for(const bomb of bombs){
+			bomb.update();
 		}
 
 		swap();
