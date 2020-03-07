@@ -252,6 +252,12 @@ class Paddle {
 			put(this.x, this.y+y, this.colour);
 		}
 	}
+
+	collides(x:number, y:number):boolean {
+		x = Math.round(x);
+		y = Math.round(y);
+		return Math.round(x)==Math.round(this.x) && y>=Math.round(this.y) && y<Math.round(this.y)+this.height;
+	}
 }
 
 class Ball {
@@ -298,6 +304,7 @@ class Ball {
 			var newY = this.y + this.velY;
 
 			let hitBomb = false;
+			let hitPaddle = false;
 
 			for(const bomb of bombs){
 				if(bomb.collides(newX, newY)){
@@ -315,6 +322,12 @@ class Ball {
 			if(!hitBomb&&collide(this.colour, newX, newY)){
 
 				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
+
+				for(const paddle of paddles){
+					if(paddle.collides(newX, newY)){
+						hitPaddle = true;
+					}
+				}
 
 				const wasScreenEdge = !inbounds(newX, newY);
 
@@ -342,7 +355,7 @@ class Ball {
 					this.history = [];
 				}
 
-				if(wasScreenEdge){
+				if(wasScreenEdge||hitPaddle){
 					newX = this.x;
 					newY = this.y;
 
