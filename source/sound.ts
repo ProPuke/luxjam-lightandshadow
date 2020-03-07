@@ -1,4 +1,5 @@
 export enum Effect {
+	debug,
 	boom,
 	blip
 }
@@ -15,6 +16,7 @@ export class Manager {
 			throw Error('you no have sound :( bad browser!');
 		}
 
+		this.load(Effect.debug, 'sounds/debug.mp3');
 		this.load(Effect.boom, 'sounds/explosion1.wav');
 		this.load(Effect.boom, 'sounds/explosion2.wav');
 		this.load(Effect.boom, 'sounds/explosion3.wav');
