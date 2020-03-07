@@ -1,6 +1,9 @@
 import { Renderer } from './Renderer.js';
+import * as sound from './sound.js';
 
 const renderer = new Renderer(document.getElementsByTagName('canvas')[0], 128, 92);
+
+let sounds:sound.Manager|null = null;
 
 import * as blit16 from './blit16.js';
 
@@ -54,16 +57,18 @@ function put_clipped(x:number, y:number, colour:boolean) {
 	renderer.put(x, y, colour);
 }
 
-async function bigBoom(ox:number, oy:number, colour:boolean, haveKids = true) {
+async function bigBoom(ox:number, oy:number, colour:boolean, bigDaddy = true) {
 	const radius = 10;
 
-	if(haveKids){
+	if(bigDaddy){
 		for(var i=0;i<3;i++){
 			setTimeout(() => {
 				bigBoom(ox + Math.random()*(radius*2)-radius, oy + Math.random()*(radius*2)-radius, colour, false);
 			}, 200+i*100);
 		}
 	}
+
+	if(sounds)sounds.playEffect(sound.Effect.boom, bigDaddy?0.6:0.3);
 
 	for(let i=1;i<radius;i+=2){
 		for(let x=-i;x<i;x++){
@@ -154,6 +159,12 @@ class Input {
 
 const aiInput = new Input();
 const input = new Input();
+
+window.addEventListener("click", (event:MouseEvent) => {
+	if(!sounds){
+		sounds = new sound.Manager();
+	}
+});
 
 window.addEventListener("keydown", (event:KeyboardEvent) => {
 	switch(event.key){
@@ -286,8 +297,11 @@ class Ball {
 			var newX = this.x + this.velX;
 			var newY = this.y + this.velY;
 
+			let hitBomb = false;
+
 			for(const bomb of bombs){
 				if(bomb.collides(newX, newY)){
+					hitBomb = true;
 					await bomb.explode(this.colour);
 
 					this.velX *= -1;
@@ -298,7 +312,9 @@ class Ball {
 				}
 			}
 
-			if(collide(this.colour, newX, newY)){
+			if(!hitBomb&&collide(this.colour, newX, newY)){
+
+				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
 
 				const wasScreenEdge = !inbounds(newX, newY);
 

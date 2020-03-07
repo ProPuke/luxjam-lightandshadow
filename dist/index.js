@@ -1,4 +1,4 @@
-System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1) {
+System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (exports_1, context_1) {
     "use strict";
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,7 +35,7 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
             if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
     };
-    var Renderer_js_1, renderer, blit16, Input, aiInput, input, top, bottom, Paddle, Ball, Bomb, paddles, balls, bombs, frame;
+    var Renderer_js_1, sound, renderer, sounds, blit16, Input, aiInput, input, top, bottom, Paddle, Ball, Bomb, paddles, balls, bombs, frame;
     var __moduleName = context_1 && context_1.id;
     function put_text(x, y, message, colour, glyphs, glyph_start, glyph_width, glyph_height) {
         var cx = x;
@@ -82,21 +82,23 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
             return;
         renderer.put(x, y, colour);
     }
-    function bigBoom(ox, oy, colour, haveKids) {
-        if (haveKids === void 0) { haveKids = true; }
+    function bigBoom(ox, oy, colour, bigDaddy) {
+        if (bigDaddy === void 0) { bigDaddy = true; }
         return __awaiter(this, void 0, void 0, function () {
             var radius, i, i_1, x, y, i_2, x, y;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         radius = 10;
-                        if (haveKids) {
+                        if (bigDaddy) {
                             for (i = 0; i < 3; i++) {
                                 setTimeout(function () {
                                     bigBoom(ox + Math.random() * (radius * 2) - radius, oy + Math.random() * (radius * 2) - radius, colour, false);
                                 }, 200 + i * 100);
                             }
                         }
+                        if (sounds)
+                            sounds.playEffect(sound.Effect.boom, bigDaddy ? 0.6 : 0.3);
                         i_1 = 1;
                         _a.label = 1;
                     case 1:
@@ -319,12 +321,16 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
             function (Renderer_js_1_1) {
                 Renderer_js_1 = Renderer_js_1_1;
             },
+            function (sound_1) {
+                sound = sound_1;
+            },
             function (blit16_1) {
                 blit16 = blit16_1;
             }
         ],
         execute: function () {
             renderer = new Renderer_js_1.Renderer(document.getElementsByTagName('canvas')[0], 128, 92);
+            sounds = null;
             Input = /** @class */ (function () {
                 function Input() {
                     this.up = false;
@@ -335,6 +341,11 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
             ;
             aiInput = new Input();
             input = new Input();
+            window.addEventListener("click", function (event) {
+                if (!sounds) {
+                    sounds = new sound.Manager();
+                }
+            });
             window.addEventListener("keydown", function (event) {
                 switch (event.key) {
                     case 'w':
@@ -443,7 +454,7 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                                         return [2 /*return*/];
                                     trailLength = Math.min(this.speed, 20);
                                     _loop_1 = function () {
-                                        var _i, bombs_2, bomb, wasScreenEdge, _a, _b, history_1, colX, colY, _c, _d, history_2, _e, _f, history_3, x_1, y_1;
+                                        var hitBomb, _i, bombs_2, bomb, wasScreenEdge, _a, _b, history_1, colX, colY, _c, _d, history_2, _e, _f, history_3, x_1, y_1;
                                         return __generator(this, function (_g) {
                                             switch (_g.label) {
                                                 case 0:
@@ -451,12 +462,14 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                                                     // put(this.x, this.y, !this.colour);
                                                     newX = this_1.x + this_1.velX;
                                                     newY = this_1.y + this_1.velY;
+                                                    hitBomb = false;
                                                     _i = 0, bombs_2 = bombs;
                                                     _g.label = 1;
                                                 case 1:
                                                     if (!(_i < bombs_2.length)) return [3 /*break*/, 4];
                                                     bomb = bombs_2[_i];
                                                     if (!bomb.collides(newX, newY)) return [3 /*break*/, 3];
+                                                    hitBomb = true;
                                                     return [4 /*yield*/, bomb.explode(this_1.colour)];
                                                 case 2:
                                                     _g.sent();
@@ -469,7 +482,9 @@ System.register(["./Renderer.js", "./blit16.js"], function (exports_1, context_1
                                                     _i++;
                                                     return [3 /*break*/, 1];
                                                 case 4:
-                                                    if (collide(this_1.colour, newX, newY)) {
+                                                    if (!hitBomb && collide(this_1.colour, newX, newY)) {
+                                                        if (sounds)
+                                                            sounds.playEffect(sound.Effect.blip, 0.2);
                                                         wasScreenEdge = !inbounds(newX, newY);
                                                         for (_a = 0, _b = this_1.history; _a < _b.length; _a++) {
                                                             history_1 = _b[_a];
