@@ -639,7 +639,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                     bigBoom(paddle.x, paddle.y, this_1.colour);
                                                                     bigBoom(paddle.x, paddle.y + paddle.height / 2, this_1.colour);
                                                                     bigBoom(paddle.x, paddle.y + paddle.height, this_1.colour);
-                                                                    paddles.splice(i, 1);
+                                                                    paddles.splice(i2, 1);
                                                                     i--;
                                                                 }
                                                             }

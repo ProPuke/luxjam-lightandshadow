@@ -442,7 +442,7 @@ class Ball {
 							bigBoom(paddle.x, paddle.y, this.colour);
 							bigBoom(paddle.x, paddle.y+paddle.height/2, this.colour);
 							bigBoom(paddle.x, paddle.y+paddle.height, this.colour);
-							paddles.splice(i, 1);
+							paddles.splice(i2, 1);
 							i--;
 						}
 					}
