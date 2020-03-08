@@ -99,7 +99,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                             }
                         }
                         if (sounds)
-                            sounds.playEffect(sound.Effect.boom, bigDaddy ? 0.6 : 0.3);
+                            sounds.playEffect(sound.Effect.boom, bigDaddy ? 1.0 : 0.5);
                         i_1 = 1;
                         _a.label = 1;
                     case 1:
@@ -523,7 +523,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                         this.hasBomb = true;
                         if (this.colour) {
                             if (sounds)
-                                sounds.playEffect(sound.Effect.hasBomb, 1.0);
+                                sounds.playEffect(sound.Effect.hasBomb);
                         }
                     }
                     this.bombChargeDuration = 0;
@@ -645,7 +645,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                             }
                                                         }
                                                         if (sounds)
-                                                            sounds.playEffect(sound.Effect.blip, 0.2);
+                                                            sounds.playEffect(sound.Effect.blip);
                                                         if (hitPaddle && this_1.colour) {
                                                             if (sounds)
                                                                 sounds.playEffect(sound.Effect.paddle, 1.0, this_1.paddleCombo * 100);
@@ -661,7 +661,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         else if (wasFarScreenEdge) {
                                                             if (this_1.paddleCombo > 0 && this_1.colour) {
                                                                 if (sounds)
-                                                                    sounds.playEffect(sound.Effect.paddleMiss, 1.0);
+                                                                    sounds.playEffect(sound.Effect.paddleMiss);
                                                             }
                                                             this_1.paddleCombo = 0;
                                                             this_1.reset_bomb_charge();
@@ -732,14 +732,14 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                 Ball.prototype.go_super = function () {
                     this.isSuper = Math.max(this.isSuper, 150);
                     if (sounds)
-                        sounds.playEffect(sound.Effect.debug, 1.0);
+                        sounds.playEffect(sound.Effect.debug);
                     setTimeout(function () {
                         if (sounds)
-                            sounds.playEffect(sound.Effect.debug, 1.0);
+                            sounds.playEffect(sound.Effect.debug);
                     }, 500);
                     setTimeout(function () {
                         if (sounds)
-                            sounds.playEffect(sound.Effect.debug, 1.0);
+                            sounds.playEffect(sound.Effect.debug);
                     }, 1000);
                 };
                 return Ball;

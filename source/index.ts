@@ -68,7 +68,7 @@ async function bigBoom(ox:number, oy:number, colour:boolean, bigDaddy = true) {
 		}
 	}
 
-	if(sounds)sounds.playEffect(sound.Effect.boom, bigDaddy?0.6:0.3);
+	if(sounds)sounds.playEffect(sound.Effect.boom, bigDaddy?1.0:0.5);
 
 	for(let i=1;i<radius;i+=2){
 		for(let x=-i;x<i;x++){
@@ -330,7 +330,7 @@ class Ball {
 		if(this.bombCharge==3){
 			this.hasBomb = true;
 			if(this.colour){
-				if(sounds)sounds.playEffect(sound.Effect.hasBomb, 1.0);
+				if(sounds)sounds.playEffect(sound.Effect.hasBomb);
 			}
 		}
 		this.bombChargeDuration = 0;
@@ -448,7 +448,7 @@ class Ball {
 					}
 				}
 
-				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
+				if(sounds)sounds.playEffect(sound.Effect.blip);
 
 				if(hitPaddle&&this.colour){
 					if(sounds)sounds.playEffect(sound.Effect.paddle, 1.0, this.paddleCombo*100);
@@ -463,7 +463,7 @@ class Ball {
 
 				}else if(wasFarScreenEdge){
 					if(this.paddleCombo>0&&this.colour){
-						if(sounds)sounds.playEffect(sound.Effect.paddleMiss, 1.0);
+						if(sounds)sounds.playEffect(sound.Effect.paddleMiss);
 					}
 					this.paddleCombo = 0;
 					this.reset_bomb_charge();
@@ -524,12 +524,12 @@ class Ball {
 
 	go_super() {
 		this.isSuper = Math.max(this.isSuper, 150);
-		if(sounds) sounds.playEffect(sound.Effect.debug, 1.0);
+		if(sounds) sounds.playEffect(sound.Effect.debug);
 		setTimeout(() => {
-			if(sounds) sounds.playEffect(sound.Effect.debug, 1.0);
+			if(sounds) sounds.playEffect(sound.Effect.debug);
 		}, 500);
 		setTimeout(() => {
-			if(sounds) sounds.playEffect(sound.Effect.debug, 1.0);
+			if(sounds) sounds.playEffect(sound.Effect.debug);
 		}, 1000);
 	}
 }
