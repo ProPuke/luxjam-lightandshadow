@@ -179,6 +179,9 @@ const input = new Input();
 window.addEventListener("click", (event:MouseEvent) => {
 	if(!sounds){
 		sounds = new sound.Manager();
+		sounds.load().then(() => {
+			if(sounds) sounds.playMusic(sound.Music.main);
+		});
 	}
 });
 

@@ -400,10 +400,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             window.addEventListener("click", function (event) {
                 if (!sounds) {
                     sounds = new sound.Manager();
-                    sounds.load().then(function () {
-                        if (sounds)
-                            sounds.playMusic(sound.Music.main);
-                    });
+                    sounds.playMusic(sound.Music.main);
                 }
             });
             window.addEventListener("keydown", function (event) {
