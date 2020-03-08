@@ -522,7 +522,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                 hitPaddle = true;
                                                                 paddlePhase = clamp((newY - paddle.y) / paddle.height, 0.0, 1.0);
                                                                 length2 = this_1.velX * this_1.velX + this_1.velY * this_1.velY;
-                                                                this_1.velY = clamp(this_1.velY - 1 + paddlePhase * 2.0, -1, 1);
+                                                                this_1.velY = clamp(this_1.velY - 1.5 + paddlePhase * 3.0, -0.9, 0.9);
                                                                 //renormalise to same length, but keeping the new y velcity
                                                                 this_1.velX = Math.sign(this_1.velX) * Math.sqrt(length2 - this_1.velY * this_1.velY);
                                                             }

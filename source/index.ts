@@ -360,7 +360,7 @@ class Ball {
 
 						const length2 = this.velX*this.velX + this.velY*this.velY;
 
-						this.velY = clamp(this.velY - 1 + paddlePhase * 2.0, -1, 1);
+						this.velY = clamp(this.velY - 1.5 + paddlePhase * 3.0, -0.9, 0.9);
 
 						//renormalise to same length, but keeping the new y velcity
 						this.velX = Math.sign(this.velX) * Math.sqrt(length2-this.velY*this.velY);
