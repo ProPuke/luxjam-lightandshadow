@@ -432,6 +432,8 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     this.velX = 0;
                     this.velY = 0;
                     this.speed = 2;
+                    this.isSuper = 0;
+                    this.bombCount = 0;
                     this.history = [[0, 0]];
                     this.colour = colour;
                     this.x = x;
@@ -464,7 +466,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                         put(history_1[0], history_1[1], !this.colour);
                                     }
                                     _loop_1 = function () {
-                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, colX, colY, _a, paddles_2, paddle, paddlePhase, length2, x_1, y_1;
+                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, oldVelX, oldVelY, colX, colY, _a, paddles_2, paddle, paddlePhase, length2, x_1, y_1;
                                         return __generator(this, function (_b) {
                                             switch (_b.label) {
                                                 case 0:
@@ -487,6 +489,10 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     return [4 /*yield*/, bomb.explode(this_1.colour)];
                                                 case 2:
                                                     _b.sent();
+                                                    this_1.bombCount++;
+                                                    if (this_1.bombCount % 4 == 0) {
+                                                        this_1.go_super();
+                                                    }
                                                     this_1.velX *= -1;
                                                     this_1.velY *= -1;
                                                     newX = this_1.x + this_1.velX;
@@ -500,6 +506,8 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         if (sounds)
                                                             sounds.playEffect(sound.Effect.blip, 0.2);
                                                         wasScreenEdge = !inbounds(newX, newY);
+                                                        oldVelX = this_1.velX;
+                                                        oldVelY = this_1.velY;
                                                         colX = collide(this_1.colour, newX, this_1.y);
                                                         colY = collide(this_1.colour, this_1.x, newY);
                                                         if (!colX && !colY)
@@ -517,11 +525,11 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                 this_1.velY = clamp(this_1.velY - 1.5 + paddlePhase * 3.0, -1, 1);
                                                                 //renormalise to same length, but keeping the new y velcity
                                                                 this_1.velX = Math.sign(this_1.velX) * Math.sqrt(length2 - this_1.velY * this_1.velY);
-                                                                if (this_1.colour) {
-                                                                    console.log('to');
-                                                                    console.log(this_1.velX, this_1.velY);
-                                                                }
                                                             }
+                                                        }
+                                                        if (this_1.isSuper && !wasScreenEdge && !hitPaddle) {
+                                                            this_1.velX = oldVelX;
+                                                            this_1.velY = oldVelY;
                                                         }
                                                         newX = this_1.x + this_1.velX;
                                                         newY = this_1.y + this_1.velY;
@@ -568,12 +576,27 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                     }
                                     for (_b = 0, _c = this.history; _b < _c.length; _b++) {
                                         history_2 = _c[_b];
-                                        put(history_2[0], history_2[1], this.colour);
+                                        put(history_2[0], history_2[1], this.isSuper ? frame % 4 < 2 : this.colour);
                                     }
+                                    if (this.isSuper > 0)
+                                        this.isSuper--;
                                     return [2 /*return*/];
                             }
                         });
                     });
+                };
+                Ball.prototype.go_super = function () {
+                    this.isSuper = Math.max(this.isSuper, 150);
+                    if (sounds)
+                        sounds.playEffect(sound.Effect.debug, 1.0);
+                    setTimeout(function () {
+                        if (sounds)
+                            sounds.playEffect(sound.Effect.debug, 1.0);
+                    }, 500);
+                    setTimeout(function () {
+                        if (sounds)
+                            sounds.playEffect(sound.Effect.debug, 1.0);
+                    }, 1000);
                 };
                 return Ball;
             }());

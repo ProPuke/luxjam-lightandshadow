@@ -267,6 +267,8 @@ class Ball {
 	velX = 0;
 	velY = 0;
 	speed = 2;
+	isSuper = 0;
+	bombCount = 0;
 	history:[number,number][] = [[0,0]]
 
 	constructor(colour:boolean, x:number, y:number, velX:number, velY:number) {
@@ -321,6 +323,11 @@ class Ball {
 					hitBomb = true;
 					await bomb.explode(this.colour);
 
+					this.bombCount++;
+					if(this.bombCount%4==0){
+						this.go_super();
+					}
+
 					this.velX *= -1;
 					this.velY *= -1;
 
@@ -334,6 +341,9 @@ class Ball {
 				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
 
 				const wasScreenEdge = !inbounds(newX, newY);
+
+				const oldVelX = this.velX;
+				const oldVelY = this.velY;
 
 				let colX = collide(this.colour, newX, this.y);
 				let colY = collide(this.colour, this.x, newY);
@@ -354,12 +364,12 @@ class Ball {
 
 						//renormalise to same length, but keeping the new y velcity
 						this.velX = Math.sign(this.velX) * Math.sqrt(length2-this.velY*this.velY);
-
-						if(this.colour){
-							console.log('to');
-							console.log(this.velX, this.velY);
-						}
 					}
+				}
+
+				if(this.isSuper&&!wasScreenEdge&&!hitPaddle){
+					this.velX = oldVelX;
+					this.velY = oldVelY;
 				}
 
 				newX = this.x + this.velX;
@@ -398,8 +408,21 @@ class Ball {
 		}
 
 		for(const history of this.history){
-			put(history[0], history[1], this.colour);
+			put(history[0], history[1], this.isSuper?frame%4<2:this.colour);
 		}
+
+		if(this.isSuper>0) this.isSuper--;
+	}
+
+	go_super() {
+		this.isSuper = Math.max(this.isSuper, 150);
+		if(sounds) sounds.playEffect(sound.Effect.debug, 1.0);
+		setTimeout(() => {
+			if(sounds) sounds.playEffect(sound.Effect.debug, 1.0);
+		}, 500);
+		setTimeout(() => {
+			if(sounds) sounds.playEffect(sound.Effect.debug, 1.0);
+		}, 1000);
 	}
 }
 
