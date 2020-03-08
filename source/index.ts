@@ -276,6 +276,8 @@ class Ball {
 		this.velX = velX;
 		this.velY = velY;
 
+		this.history.push([x, y]);
+
 		put(x, y, colour);
 	}
 
@@ -295,10 +297,11 @@ class Ball {
 
 		const trailLength = Math.min(this.speed, 20);
 
-		for(var i=this.speed;i>0;i--){
+		for(const history of this.history){
+			put(history[0], history[1], !this.colour);
+		}
 
-			this.history.push([this.x, this.y]);
-			// put(this.x, this.y, !this.colour);
+		for(var i=this.speed;i>0;i--){
 
 			var newX = this.x + this.velX;
 			var newY = this.y + this.velY;
@@ -332,35 +335,30 @@ class Ball {
 
 				const wasScreenEdge = !inbounds(newX, newY);
 
-				for(const history of this.history){
-					put(history[0], history[1], !this.colour);
-				}
-
 				let colX = collide(this.colour, newX, this.y);
 				let colY = collide(this.colour, this.x, newY);
 
 				if(!colX&&!colY) colX = colY = true;
 
-				for(const history of this.history){
-					put(history[0], history[1], this.colour);
-				}
-
 				if(colX) this.velX = clamp(this.velX * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
 				if(colY) this.velY = clamp(this.velY * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
-
-				if(colX&&colY){
-					for(const history of this.history){
-						put(history[0], history[1], !this.colour);
-					}
-					this.history = [];
-				}
 
 				for(const paddle of paddles){
 					if(paddle.collides(newX, newY)){
 						hitPaddle = true;
 						const paddlePhase = clamp((newY-paddle.y)/paddle.height, 0.0, 1.0);
 
-						this.velY = clamp(this.velY - 1.5 + paddlePhase * 3.0, -1.5, 1.5);
+						const length2 = this.velX*this.velX + this.velY*this.velY;
+
+						this.velY = clamp(this.velY - 1.5 + paddlePhase * 3.0, -1, 1);
+
+						//renormalise to same length, but keeping the new y velcity
+						this.velX = Math.sign(this.velX) * Math.sqrt(length2-this.velY*this.velY);
+
+						if(this.colour){
+							console.log('to');
+							console.log(this.velX, this.velY);
+						}
 					}
 				}
 
@@ -392,12 +390,15 @@ class Ball {
 			this.x = newX;
 			this.y = newY;
 
-			put(this.x, this.y, this.colour);
+			this.history.push([this.x, this.y]);
 		}
 
 		while(this.history.length>trailLength){
-			put(this.history[0][0], this.history[0][1], !this.colour);
 			this.history.shift();
+		}
+
+		for(const history of this.history){
+			put(history[0], history[1], this.colour);
 		}
 	}
 }

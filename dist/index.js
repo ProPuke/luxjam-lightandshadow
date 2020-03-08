@@ -438,6 +438,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     this.y = y;
                     this.velX = velX;
                     this.velY = velY;
+                    this.history.push([x, y]);
                     put(x, y, colour);
                 }
                 Ball.prototype.moveTo = function (x, y) {
@@ -450,21 +451,23 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                 };
                 Ball.prototype.update = function () {
                     return __awaiter(this, void 0, void 0, function () {
-                        var trailLength, _loop_1, this_1, newX, newY, i;
+                        var trailLength, _i, _a, history_1, _loop_1, this_1, newX, newY, i, _b, _c, history_2;
                         var _this = this;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
                                 case 0:
                                     if (!this.velX && !this.velY)
                                         return [2 /*return*/];
                                     trailLength = Math.min(this.speed, 20);
+                                    for (_i = 0, _a = this.history; _i < _a.length; _i++) {
+                                        history_1 = _a[_i];
+                                        put(history_1[0], history_1[1], !this.colour);
+                                    }
                                     _loop_1 = function () {
-                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, _a, _b, history_1, colX, colY, _c, _d, history_2, _e, _f, history_3, _g, paddles_2, paddle, paddlePhase, x_1, y_1;
-                                        return __generator(this, function (_h) {
-                                            switch (_h.label) {
+                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, colX, colY, _a, paddles_2, paddle, paddlePhase, length2, x_1, y_1;
+                                        return __generator(this, function (_b) {
+                                            switch (_b.label) {
                                                 case 0:
-                                                    this_1.history.push([this_1.x, this_1.y]);
-                                                    // put(this.x, this.y, !this.colour);
                                                     newX = this_1.x + this_1.velX;
                                                     newY = this_1.y + this_1.velY;
                                                     if (Math.round(newX) == Math.round(this_1.x) && Math.round(newY) == Math.round(this_1.y)) {
@@ -475,7 +478,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     hitBomb = false;
                                                     hitPaddle = false;
                                                     _i = 0, bombs_2 = bombs;
-                                                    _h.label = 1;
+                                                    _b.label = 1;
                                                 case 1:
                                                     if (!(_i < bombs_2.length)) return [3 /*break*/, 4];
                                                     bomb = bombs_2[_i];
@@ -483,12 +486,12 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     hitBomb = true;
                                                     return [4 /*yield*/, bomb.explode(this_1.colour)];
                                                 case 2:
-                                                    _h.sent();
+                                                    _b.sent();
                                                     this_1.velX *= -1;
                                                     this_1.velY *= -1;
                                                     newX = this_1.x + this_1.velX;
                                                     newY = this_1.y + this_1.velY;
-                                                    _h.label = 3;
+                                                    _b.label = 3;
                                                 case 3:
                                                     _i++;
                                                     return [3 /*break*/, 1];
@@ -497,35 +500,27 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         if (sounds)
                                                             sounds.playEffect(sound.Effect.blip, 0.2);
                                                         wasScreenEdge = !inbounds(newX, newY);
-                                                        for (_a = 0, _b = this_1.history; _a < _b.length; _a++) {
-                                                            history_1 = _b[_a];
-                                                            put(history_1[0], history_1[1], !this_1.colour);
-                                                        }
                                                         colX = collide(this_1.colour, newX, this_1.y);
                                                         colY = collide(this_1.colour, this_1.x, newY);
                                                         if (!colX && !colY)
                                                             colX = colY = true;
-                                                        for (_c = 0, _d = this_1.history; _c < _d.length; _c++) {
-                                                            history_2 = _d[_c];
-                                                            put(history_2[0], history_2[1], this_1.colour);
-                                                        }
                                                         if (colX)
                                                             this_1.velX = clamp(this_1.velX * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
                                                         if (colY)
                                                             this_1.velY = clamp(this_1.velY * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
-                                                        if (colX && colY) {
-                                                            for (_e = 0, _f = this_1.history; _e < _f.length; _e++) {
-                                                                history_3 = _f[_e];
-                                                                put(history_3[0], history_3[1], !this_1.colour);
-                                                            }
-                                                            this_1.history = [];
-                                                        }
-                                                        for (_g = 0, paddles_2 = paddles; _g < paddles_2.length; _g++) {
-                                                            paddle = paddles_2[_g];
+                                                        for (_a = 0, paddles_2 = paddles; _a < paddles_2.length; _a++) {
+                                                            paddle = paddles_2[_a];
                                                             if (paddle.collides(newX, newY)) {
                                                                 hitPaddle = true;
                                                                 paddlePhase = clamp((newY - paddle.y) / paddle.height, 0.0, 1.0);
-                                                                this_1.velY = clamp(this_1.velY - 1.5 + paddlePhase * 3.0, -1.5, 1.5);
+                                                                length2 = this_1.velX * this_1.velX + this_1.velY * this_1.velY;
+                                                                this_1.velY = clamp(this_1.velY - 1.5 + paddlePhase * 3.0, -1, 1);
+                                                                //renormalise to same length, but keeping the new y velcity
+                                                                this_1.velX = Math.sign(this_1.velX) * Math.sqrt(length2 - this_1.velY * this_1.velY);
+                                                                if (this_1.colour) {
+                                                                    console.log('to');
+                                                                    console.log(this_1.velX, this_1.velY);
+                                                                }
                                                             }
                                                         }
                                                         newX = this_1.x + this_1.velX;
@@ -550,27 +545,30 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     }
                                                     this_1.x = newX;
                                                     this_1.y = newY;
-                                                    put(this_1.x, this_1.y, this_1.colour);
+                                                    this_1.history.push([this_1.x, this_1.y]);
                                                     return [2 /*return*/];
                                             }
                                         });
                                     };
                                     this_1 = this;
                                     i = this.speed;
-                                    _a.label = 1;
+                                    _d.label = 1;
                                 case 1:
                                     if (!(i > 0)) return [3 /*break*/, 4];
                                     return [5 /*yield**/, _loop_1()];
                                 case 2:
-                                    _a.sent();
-                                    _a.label = 3;
+                                    _d.sent();
+                                    _d.label = 3;
                                 case 3:
                                     i--;
                                     return [3 /*break*/, 1];
                                 case 4:
                                     while (this.history.length > trailLength) {
-                                        put(this.history[0][0], this.history[0][1], !this.colour);
                                         this.history.shift();
+                                    }
+                                    for (_b = 0, _c = this.history; _b < _c.length; _b++) {
+                                        history_2 = _c[_b];
+                                        put(history_2[0], history_2[1], this.colour);
                                     }
                                     return [2 /*return*/];
                             }
