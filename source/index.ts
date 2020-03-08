@@ -304,6 +304,7 @@ class Ball {
 	y:number;
 	velX = 0;
 	velY = 0;
+	minSpeed = 1;
 	speed = 1;
 	bombCount = 0;
 
@@ -505,9 +506,12 @@ class Ball {
 
 					if(hitPaddle){
 						this.speed = Math.min(this.speed + 0.3, 5);
+						if(this.speed>this.minSpeed&&this.speed<=2){
+							this.minSpeed = this.speed;
+						}
 
 					}else if(wasFarScreenEdge){
-						this.speed = Math.max(this.speed - 0.7);
+						this.speed = Math.max(this.speed - 0.7, this.minSpeed);
 					}
 
 				}else{

@@ -558,6 +558,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                 function Ball(colour, x, y, velX, velY) {
                     this.velX = 0;
                     this.velY = 0;
+                    this.minSpeed = 1;
                     this.speed = 1;
                     this.bombCount = 0;
                     this.paddleCombo = 0;
@@ -750,9 +751,12 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                             newY = this_1.y;
                                                             if (hitPaddle) {
                                                                 this_1.speed = Math.min(this_1.speed + 0.3, 5);
+                                                                if (this_1.speed > this_1.minSpeed && this_1.speed <= 2) {
+                                                                    this_1.minSpeed = this_1.speed;
+                                                                }
                                                             }
                                                             else if (wasFarScreenEdge) {
-                                                                this_1.speed = Math.max(this_1.speed - 0.7);
+                                                                this_1.speed = Math.max(this_1.speed - 0.7, this_1.minSpeed);
                                                             }
                                                         }
                                                         else {
