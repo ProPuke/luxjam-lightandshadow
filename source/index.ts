@@ -142,7 +142,11 @@ function swap() {
 function segment(active:boolean, ox:number, oy:number, width:number, height:number) {
 	for(let y=0;y<height;y++){
 		for(let x=height-y;x<width-y;x++){
-			put(ox+x, oy+y, active||(x+y)%2==1);
+			if(active||y==0||y==height-1||x==height-y||x==width-y-1){
+				put(ox+x, oy+y, active||(x+y)%2==1);
+			}else{
+				put(ox+x, oy+y, false);
+			}
 		}
 	} 
 }
