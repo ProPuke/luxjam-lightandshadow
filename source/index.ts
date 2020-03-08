@@ -269,6 +269,7 @@ class Ball {
 	speed = 1;
 	isSuper = 0;
 	bombCount = 0;
+	paddleCombo = 0;
 	history:[number,number][] = [[0,0]]
 
 	constructor(colour:boolean, x:number, y:number, velX:number, velY:number) {
@@ -338,8 +339,6 @@ class Ball {
 
 			if(!hitBomb&&collide(this.colour, newX, newY)){
 
-				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
-
 				const wasScreenEdge = !inbounds(newX, newY);
 				const wasFarScreenEdge = newX<=-0.5||newX>renderer.width-0.5;
 
@@ -361,11 +360,30 @@ class Ball {
 
 						const length2 = this.velX*this.velX + this.velY*this.velY;
 
-						this.velY = clamp(this.velY - 1.5 + paddlePhase * 3.0, -1, 1);
+						this.velY = clamp(this.velY - 1 + paddlePhase * 2.0, -1, 1);
 
 						//renormalise to same length, but keeping the new y velcity
 						this.velX = Math.sign(this.velX) * Math.sqrt(length2-this.velY*this.velY);
 					}
+				}
+
+				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
+
+				if(hitPaddle&&this.colour){
+					if(sounds)sounds.playEffect(sound.Effect.paddle, 1.0, this.paddleCombo*100);
+				}
+
+				if(hitPaddle){
+					if(this.colour){
+						if(sounds)sounds.playEffect(sound.Effect.paddle, 1.0, this.paddleCombo*100);
+					}
+					this.paddleCombo++;
+
+				}else if(wasFarScreenEdge){
+					if(this.paddleCombo>0&&this.colour){
+						if(sounds)sounds.playEffect(sound.Effect.paddleMiss, 1.0);
+					}
+					this.paddleCombo=0;
 				}
 
 				if(this.isSuper&&!wasScreenEdge&&!hitPaddle){

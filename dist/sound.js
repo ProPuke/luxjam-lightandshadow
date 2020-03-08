@@ -9,6 +9,8 @@ System.register([], function (exports_1, context_1) {
                 Effect[Effect["debug"] = 0] = "debug";
                 Effect[Effect["boom"] = 1] = "boom";
                 Effect[Effect["blip"] = 2] = "blip";
+                Effect[Effect["paddle"] = 3] = "paddle";
+                Effect[Effect["paddleMiss"] = 4] = "paddleMiss";
             })(Effect || (Effect = {}));
             exports_1("Effect", Effect);
             Manager = /** @class */ (function () {
@@ -28,6 +30,8 @@ System.register([], function (exports_1, context_1) {
                     this.load(Effect.blip, 'sounds/blip2.wav');
                     this.load(Effect.blip, 'sounds/blip3.wav');
                     this.load(Effect.blip, 'sounds/blip4.wav');
+                    this.load(Effect.paddle, 'sounds/paddle.wav');
+                    this.load(Effect.paddleMiss, 'sounds/paddleMiss.wav');
                 }
                 Manager.prototype.load = function (key, path) {
                     var _this = this;
@@ -51,7 +55,8 @@ System.register([], function (exports_1, context_1) {
                     };
                     request.send();
                 };
-                Manager.prototype.playEffect = function (effect, volume) {
+                Manager.prototype.playEffect = function (effect, volume, pitchShift) {
+                    if (pitchShift === void 0) { pitchShift = 0.0; }
                     console.log('sound!', effect);
                     var buffers = this.effectBuffers.get(effect);
                     if (!buffers || buffers.length < 1)
@@ -59,11 +64,12 @@ System.register([], function (exports_1, context_1) {
                     var buffer = buffers[Math.floor(Math.random() * buffers.length)];
                     var source = this.context.createBufferSource();
                     var gain = this.context.createGain();
-                    source.connect(gain);
                     source.buffer = buffer;
+                    source.detune.value = pitchShift;
                     source.loop = false;
-                    gain.connect(this.context.destination);
+                    source.connect(gain);
                     gain.gain.value = volume;
+                    gain.connect(this.context.destination);
                     source.start();
                 };
                 return Manager;

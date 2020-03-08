@@ -434,6 +434,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     this.speed = 1;
                     this.isSuper = 0;
                     this.bombCount = 0;
+                    this.paddleCombo = 0;
                     this.history = [[0, 0]];
                     this.colour = colour;
                     this.x = x;
@@ -503,8 +504,6 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     return [3 /*break*/, 1];
                                                 case 4:
                                                     if (!hitBomb && collide(this_1.colour, newX, newY)) {
-                                                        if (sounds)
-                                                            sounds.playEffect(sound.Effect.blip, 0.2);
                                                         wasScreenEdge = !inbounds(newX, newY);
                                                         wasFarScreenEdge = newX <= -0.5 || newX > renderer.width - 0.5;
                                                         oldVelX = this_1.velX;
@@ -523,10 +522,30 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                 hitPaddle = true;
                                                                 paddlePhase = clamp((newY - paddle.y) / paddle.height, 0.0, 1.0);
                                                                 length2 = this_1.velX * this_1.velX + this_1.velY * this_1.velY;
-                                                                this_1.velY = clamp(this_1.velY - 1.5 + paddlePhase * 3.0, -1, 1);
+                                                                this_1.velY = clamp(this_1.velY - 1 + paddlePhase * 2.0, -1, 1);
                                                                 //renormalise to same length, but keeping the new y velcity
                                                                 this_1.velX = Math.sign(this_1.velX) * Math.sqrt(length2 - this_1.velY * this_1.velY);
                                                             }
+                                                        }
+                                                        if (sounds)
+                                                            sounds.playEffect(sound.Effect.blip, 0.2);
+                                                        if (hitPaddle && this_1.colour) {
+                                                            if (sounds)
+                                                                sounds.playEffect(sound.Effect.paddle, 1.0, this_1.paddleCombo * 100);
+                                                        }
+                                                        if (hitPaddle) {
+                                                            if (this_1.colour) {
+                                                                if (sounds)
+                                                                    sounds.playEffect(sound.Effect.paddle, 1.0, this_1.paddleCombo * 100);
+                                                            }
+                                                            this_1.paddleCombo++;
+                                                        }
+                                                        else if (wasFarScreenEdge) {
+                                                            if (this_1.paddleCombo > 0 && this_1.colour) {
+                                                                if (sounds)
+                                                                    sounds.playEffect(sound.Effect.paddleMiss, 1.0);
+                                                            }
+                                                            this_1.paddleCombo = 0;
                                                         }
                                                         if (this_1.isSuper && !wasScreenEdge && !hitPaddle) {
                                                             this_1.velX = oldVelX;

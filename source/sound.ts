@@ -1,7 +1,9 @@
 export enum Effect {
 	debug,
 	boom,
-	blip
+	blip,
+	paddle,
+	paddleMiss
 }
 
 export class Manager {
@@ -24,6 +26,8 @@ export class Manager {
 		this.load(Effect.blip, 'sounds/blip2.wav');
 		this.load(Effect.blip, 'sounds/blip3.wav');
 		this.load(Effect.blip, 'sounds/blip4.wav');
+		this.load(Effect.paddle, 'sounds/paddle.wav');
+		this.load(Effect.paddleMiss, 'sounds/paddleMiss.wav');
 	}
 
 	load(key:Effect, path:string) {
@@ -49,7 +53,7 @@ export class Manager {
 		request.send();
 	}
 
-	playEffect(effect:Effect, volume:number) {
+	playEffect(effect:Effect, volume:number, pitchShift:number = 0.0) {
 		console.log('sound!', effect);
 		const buffers = this.effectBuffers.get(effect);
 		if(!buffers||buffers.length<1) return;
@@ -59,12 +63,14 @@ export class Manager {
 		const source = this.context.createBufferSource();
 		const gain = this.context.createGain();
 
-		source.connect(gain);
 		source.buffer = buffer;
+		source.detune.value = pitchShift;
 		source.loop = false;
 
-		gain.connect(this.context.destination);
+		source.connect(gain);
 		gain.gain.value = volume;
+		
+		gain.connect(this.context.destination);
 
 		source.start();
 	}
