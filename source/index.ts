@@ -358,12 +358,14 @@ class Ball {
 						hitPaddle = true;
 						const paddlePhase = clamp((newY-paddle.y)/paddle.height, 0.0, 1.0);
 
-						const length2 = this.velX*this.velX + this.velY*this.velY;
+						const length = this.velX*this.velX + this.velY*this.velY;
 
 						this.velY = clamp(this.velY - 1.5 + paddlePhase * 3.0, -0.9, 0.9);
 
 						//renormalise to same length, but keeping the new y velcity
-						this.velX = Math.sign(this.velX) * Math.sqrt(length2-this.velY*this.velY);
+						this.velY = clamp(this.velY, -length, length);
+						this.velX = Math.sign(this.velX) * Math.sqrt(length*length-this.velY*this.velY);
+						
 					}
 				}
 
