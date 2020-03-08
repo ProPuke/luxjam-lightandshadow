@@ -207,10 +207,12 @@ window.addEventListener("keydown", (event:KeyboardEvent) => {
 		case 'w':
 		case 'ArrowUp':
 			input.up = true;
+			event.preventDefault();
 		break;
 		case 's':
 		case 'ArrowDown':
 			input.down = true;
+			event.preventDefault();
 		break;
 		// case '1':
 		// 	if(sounds)sounds.playMusicCompanion(sound.Music.super);
