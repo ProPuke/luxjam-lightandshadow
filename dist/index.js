@@ -896,7 +896,10 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                 }
                                                             }
                                                             else if (wasFarScreenEdge) {
-                                                                this_1.speed = Math.max(this_1.speed - 0.7, this_1.minSpeed);
+                                                                //only slow if hitting the wall on your side
+                                                                if (this_1.x > 0.5 == this_1.colour) {
+                                                                    this_1.speed = Math.max(this_1.speed - 0.7, this_1.minSpeed);
+                                                                }
                                                             }
                                                         }
                                                         else {

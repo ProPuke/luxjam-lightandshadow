@@ -541,7 +541,10 @@ class Ball {
 						}
 
 					}else if(wasFarScreenEdge){
-						this.speed = Math.max(this.speed - 0.7, this.minSpeed);
+						//only slow if hitting the wall on your side
+						if(this.x>0.5==this.colour){
+							this.speed = Math.max(this.speed - 0.7, this.minSpeed);
+						}
 					}
 
 				}else{
