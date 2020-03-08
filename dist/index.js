@@ -539,7 +539,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         }
                                                         else {
                                                             boom(this_1.x, this_1.y, !this_1.colour);
-                                                            if (Math.random() < 1 / 5.0) {
+                                                            if (!this_1.isSuper && Math.random() < 1 / 5.0) {
                                                                 x_1 = this_1.x + (this_1.colour ? 4 : -4);
                                                                 y_1 = this_1.y;
                                                                 setTimeout(function () {
