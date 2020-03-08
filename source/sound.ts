@@ -8,7 +8,9 @@ export enum Effect {
 }
 
 export enum Music {
-	main
+	main,
+	super,
+	dnb
 }
 
 export class Manager {
@@ -17,6 +19,10 @@ export class Manager {
 
 	effectBuffers = new Map<Effect, {buffer:AudioBuffer, volume:number}[]>();
 	musicBuffers = new Map<Music, {buffer:AudioBuffer, volume:number, loopStart:number}[]>();
+	musicCompanions = new Map<Music, AudioBufferSourceNode>();
+
+	currentMusic:AudioBufferSourceNode|undefined;
+	currentMusicStartTime = 0.0;
 	
 	constructor(volume:number) {
 		this.volume = volume;
@@ -37,7 +43,10 @@ export class Manager {
 			this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
 			this.loadEffect(Effect.paddleMiss, 'sounds/paddle_miss.wav', 1.5),
 			this.loadEffect(Effect.hasBomb, 'sounds/bomb_collect.wav', 1.5),
-			this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0)
+
+			this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0),
+			this.loadMusic(Music.super, 'music/super.mp3', 0.56, 0.0),
+			this.loadMusic(Music.dnb, 'music/dnb.mp3', 0.56, 0.0)
 		]);
 
 		return;
@@ -128,6 +137,11 @@ export class Manager {
 	}
 
 	playMusic(music:Music, volumeScale = 1.0) {
+		if(this.currentMusic){
+			this.currentMusic.stop();
+			this.currentMusic = undefined;
+		}
+
 		console.log('music!', music);
 		const buffers = this.musicBuffers.get(music);
 		if(!buffers||buffers.length<1) return;
@@ -148,5 +162,54 @@ export class Manager {
 		gain.connect(this.context.destination);
 
 		source.start();
+
+		this.currentMusic = source;
+		this.currentMusicStartTime = this.context.currentTime;
+	}
+
+	playMusicCompanion(music:Music, volumeScale = 1.0) {
+		const existing = this.musicCompanions.get(music);
+		if(existing) return;
+
+		console.log('music companion!', music);
+		const buffers = this.musicBuffers.get(music);
+		if(!buffers||buffers.length<1) return;
+
+		let {buffer, volume, loopStart} = buffers[Math.floor(Math.random()*buffers.length)];
+		volume *= volumeScale;
+
+		const source = this.context.createBufferSource();
+		const gain = this.context.createGain();
+
+		source.buffer = buffer;
+		source.loop = true;
+		source.loopStart = loopStart;
+
+		let offset = 0.0;
+
+		if(this.currentMusic){
+			offset = this.context.currentTime - this.currentMusicStartTime;
+		}
+
+		source.connect(gain);
+		gain.gain.setValueAtTime(0, this.context.currentTime);
+		gain.gain.linearRampToValueAtTime(volume, this.context.currentTime+1.5);
+		
+		gain.connect(this.context.destination);
+
+		source.start(0, offset % buffer.duration);
+
+		this.musicCompanions.set(music, source);
+	}
+
+	stopMusicCompanion(music:Music) {
+		console.log('music companion stop!', music);
+
+		const source = this.musicCompanions.get(music);
+		if(!source) return;
+
+		this.musicCompanions.delete(music);
+
+		source.stop();
 	}
 }

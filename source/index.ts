@@ -384,7 +384,12 @@ class Ball {
 	async update() {
 		await this.update_movement();
 
-		if(this.isSuper>0) this.isSuper--;
+		if(this.isSuper>0){
+			this.isSuper--;
+			if(this.colour&&!this.isSuper){
+				if(sounds)sounds.stopMusicCompanion(sound.Music.super);
+			}
+		}
 
 		this.bombChargeDuration++;
 		this.superChargeDuration++;
@@ -492,7 +497,7 @@ class Ball {
 					}
 					this.paddleCombo = 0;
 					this.reset_bomb_charge();
-					
+
 				}else{
 					if(sounds)sounds.playEffect(sound.Effect.blip, 1.0, (Math.random()*2-1)*50);
 				}
@@ -555,13 +560,9 @@ class Ball {
 
 	go_super() {
 		this.isSuper = Math.max(this.isSuper, 150);
-		if(sounds) sounds.playEffect(sound.Effect.debug);
-		setTimeout(() => {
-			if(sounds) sounds.playEffect(sound.Effect.debug);
-		}, 500);
-		setTimeout(() => {
-			if(sounds) sounds.playEffect(sound.Effect.debug);
-		}, 1000);
+		if(this.colour){
+			if(sounds)sounds.playMusicCompanion(sound.Music.super);
+		}
 	}
 }
 

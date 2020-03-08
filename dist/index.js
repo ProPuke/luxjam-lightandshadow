@@ -629,8 +629,13 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                 case 0: return [4 /*yield*/, this.update_movement()];
                                 case 1:
                                     _a.sent();
-                                    if (this.isSuper > 0)
+                                    if (this.isSuper > 0) {
                                         this.isSuper--;
+                                        if (this.colour && !this.isSuper) {
+                                            if (sounds)
+                                                sounds.stopMusicCompanion(sound.Music.super);
+                                        }
+                                    }
                                     this.bombChargeDuration++;
                                     this.superChargeDuration++;
                                     return [2 /*return*/];
@@ -817,16 +822,10 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                 };
                 Ball.prototype.go_super = function () {
                     this.isSuper = Math.max(this.isSuper, 150);
-                    if (sounds)
-                        sounds.playEffect(sound.Effect.debug);
-                    setTimeout(function () {
+                    if (this.colour) {
                         if (sounds)
-                            sounds.playEffect(sound.Effect.debug);
-                    }, 500);
-                    setTimeout(function () {
-                        if (sounds)
-                            sounds.playEffect(sound.Effect.debug);
-                    }, 1000);
+                            sounds.playMusicCompanion(sound.Music.super);
+                    }
                 };
                 return Ball;
             }());

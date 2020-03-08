@@ -52,12 +52,16 @@ System.register([], function (exports_1, context_1) {
             exports_1("Effect", Effect);
             (function (Music) {
                 Music[Music["main"] = 0] = "main";
+                Music[Music["super"] = 1] = "super";
+                Music[Music["dnb"] = 2] = "dnb";
             })(Music || (Music = {}));
             exports_1("Music", Music);
             Manager = /** @class */ (function () {
                 function Manager(volume) {
                     this.effectBuffers = new Map();
                     this.musicBuffers = new Map();
+                    this.musicCompanions = new Map();
+                    this.currentMusicStartTime = 0.0;
                     this.volume = volume;
                     try {
                         this.context = new AudioContext();
@@ -79,7 +83,9 @@ System.register([], function (exports_1, context_1) {
                                         this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
                                         this.loadEffect(Effect.paddleMiss, 'sounds/paddle_miss.wav', 1.5),
                                         this.loadEffect(Effect.hasBomb, 'sounds/bomb_collect.wav', 1.5),
-                                        this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0)
+                                        this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0),
+                                        this.loadMusic(Music.super, 'music/super.mp3', 0.56, 0.0),
+                                        this.loadMusic(Music.dnb, 'music/dnb.mp3', 0.56, 0.0)
                                     ])];
                                 case 1:
                                     _a.sent();
@@ -177,6 +183,10 @@ System.register([], function (exports_1, context_1) {
                 };
                 Manager.prototype.playMusic = function (music, volumeScale) {
                     if (volumeScale === void 0) { volumeScale = 1.0; }
+                    if (this.currentMusic) {
+                        this.currentMusic.stop();
+                        this.currentMusic = undefined;
+                    }
                     console.log('music!', music);
                     var buffers = this.musicBuffers.get(music);
                     if (!buffers || buffers.length < 1)
@@ -192,6 +202,43 @@ System.register([], function (exports_1, context_1) {
                     gain.gain.value = volume;
                     gain.connect(this.context.destination);
                     source.start();
+                    this.currentMusic = source;
+                    this.currentMusicStartTime = this.context.currentTime;
+                };
+                Manager.prototype.playMusicCompanion = function (music, volumeScale) {
+                    if (volumeScale === void 0) { volumeScale = 1.0; }
+                    var existing = this.musicCompanions.get(music);
+                    if (existing)
+                        return;
+                    console.log('music companion!', music);
+                    var buffers = this.musicBuffers.get(music);
+                    if (!buffers || buffers.length < 1)
+                        return;
+                    var _a = buffers[Math.floor(Math.random() * buffers.length)], buffer = _a.buffer, volume = _a.volume, loopStart = _a.loopStart;
+                    volume *= volumeScale;
+                    var source = this.context.createBufferSource();
+                    var gain = this.context.createGain();
+                    source.buffer = buffer;
+                    source.loop = true;
+                    source.loopStart = loopStart;
+                    var offset = 0.0;
+                    if (this.currentMusic) {
+                        offset = this.context.currentTime - this.currentMusicStartTime;
+                    }
+                    source.connect(gain);
+                    gain.gain.setValueAtTime(0, this.context.currentTime);
+                    gain.gain.linearRampToValueAtTime(volume, this.context.currentTime + 1.5);
+                    gain.connect(this.context.destination);
+                    source.start(0, offset % buffer.duration);
+                    this.musicCompanions.set(music, source);
+                };
+                Manager.prototype.stopMusicCompanion = function (music) {
+                    console.log('music companion stop!', music);
+                    var source = this.musicCompanions.get(music);
+                    if (!source)
+                        return;
+                    this.musicCompanions.delete(music);
+                    source.stop();
                 };
                 return Manager;
             }());
