@@ -530,7 +530,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                             _d = count_wins(), count = _d.count, total = _d.total;
                             print(3, renderer.height - 8, true, (((total - count) / total) * 100).toFixed(0) + "% vs " + ((count / total) * 100).toFixed(0) + "%");
                             percentage = count / total;
-                            if ((sounds && sounds.context.currentTime > 60 * 4.0) || percentage > 0.75 || percentage < 0.25) {
+                            if ((sounds && sounds.context.currentTime > 60 * 3.0) || percentage > 0.75 || percentage < 0.25) {
                                 begin_endgame();
                             }
                         }
