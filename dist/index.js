@@ -432,11 +432,11 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
         setTimeout(function () {
             if (sounds)
                 sounds.stopMusic();
-        }, 5 * 1000);
+        }, 10 * 1000);
         setTimeout(function () {
             var _a = count_wins(), count = _a.count, total = _a.total;
             gameWinner = (count / total) > 0.5;
-        }, 10 * 1000);
+        }, 20 * 1000);
     }
     function run() {
         return __awaiter(this, void 0, void 0, function () {
@@ -530,7 +530,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                             _d = count_wins(), count = _d.count, total = _d.total;
                             print(3, renderer.height - 8, true, (((total - count) / total) * 100).toFixed(0) + "% vs " + ((count / total) * 100).toFixed(0) + "%");
                             percentage = count / total;
-                            if (percentage > 0.8 || percentage < 0.2) {
+                            if ((sounds && sounds.context.currentTime > 60 * 4.0) || percentage > 0.75 || percentage < 0.25) {
                                 begin_endgame();
                             }
                         }

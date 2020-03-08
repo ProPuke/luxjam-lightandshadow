@@ -185,10 +185,7 @@ System.register([], function (exports_1, context_1) {
                 };
                 Manager.prototype.playMusic = function (music, volumeScale) {
                     if (volumeScale === void 0) { volumeScale = 1.0; }
-                    if (this.currentMusic) {
-                        this.currentMusic.stop();
-                        this.currentMusic = undefined;
-                    }
+                    this.stopMusic();
                     console.log('music!', music);
                     var buffers = this.musicBuffers.get(music);
                     if (!buffers || buffers.length < 1)
@@ -204,13 +201,18 @@ System.register([], function (exports_1, context_1) {
                     gain.gain.value = volume;
                     gain.connect(this.context.destination);
                     source.start();
-                    this.currentMusic = source;
+                    this.currentMusic = { source: source, gain: gain };
                     this.currentMusicStartTime = this.context.currentTime;
                 };
                 Manager.prototype.stopMusic = function () {
                     if (this.currentMusic) {
-                        this.currentMusic.stop();
+                        var music_1 = this.currentMusic;
+                        music_1.gain.gain.setValueAtTime(1.0, this.context.currentTime);
+                        music_1.gain.gain.linearRampToValueAtTime(0.0, this.context.currentTime + 3.0);
                         this.currentMusic = undefined;
+                        setTimeout(function () {
+                            music_1.source.stop();
+                        }, 3 * 1000);
                     }
                 };
                 Manager.prototype.playMusicCompanion = function (music, volumeScale) {

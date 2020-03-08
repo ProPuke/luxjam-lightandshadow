@@ -764,13 +764,13 @@ function begin_endgame() {
 
 	setTimeout(function(){
 		if(sounds)sounds.stopMusic();
-	}, 5*1000);
+	}, 10*1000);
 
 	setTimeout(function(){
 		const {count, total} = count_wins();
 
 		gameWinner = (count/total)>0.5;
-	}, 10*1000);
+	}, 20*1000);
 }
 
 async function run() {
@@ -869,7 +869,7 @@ async function run() {
 			print(3, renderer.height-8, true, `${(((total-count)/total)*100).toFixed(0)}% vs ${((count/total)*100).toFixed(0)}%`);
 
 			const percentage = count/total;
-			if(percentage>0.8||percentage<0.2){
+			if((sounds&&sounds.context.currentTime>60*4.0)||percentage>0.75||percentage<0.25){
 				begin_endgame();
 			}
 		}

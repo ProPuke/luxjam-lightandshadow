@@ -22,7 +22,7 @@ export class Manager {
 	musicBuffers = new Map<Music, {buffer:AudioBuffer, volume:number, loopStart:number}[]>();
 	musicCompanions = new Map<Music, AudioBufferSourceNode>();
 
-	currentMusic:AudioBufferSourceNode|undefined;
+	currentMusic:{source:AudioBufferSourceNode, gain:GainNode}|undefined;
 	currentMusicStartTime = 0.0;
 	
 	constructor(volume:number) {
@@ -139,10 +139,7 @@ export class Manager {
 	}
 
 	playMusic(music:Music, volumeScale = 1.0) {
-		if(this.currentMusic){
-			this.currentMusic.stop();
-			this.currentMusic = undefined;
-		}
+		this.stopMusic();
 
 		console.log('music!', music);
 		const buffers = this.musicBuffers.get(music);
@@ -165,14 +162,21 @@ export class Manager {
 
 		source.start();
 
-		this.currentMusic = source;
+		this.currentMusic = {source, gain};
 		this.currentMusicStartTime = this.context.currentTime;
 	}
 
 	stopMusic() {
 		if(this.currentMusic){
-			this.currentMusic.stop();
+			const music = this.currentMusic;
+			music.gain.gain.setValueAtTime(1.0, this.context.currentTime);
+			music.gain.gain.linearRampToValueAtTime(0.0, this.context.currentTime+3.0);
+
 			this.currentMusic = undefined;
+
+			setTimeout(function(){
+				music.source.stop();
+			}, 3*1000);
 		}
 	}
 
