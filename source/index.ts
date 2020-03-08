@@ -348,11 +348,11 @@ class Ball {
 		this.lastBombCharge = this.bombCharge;
 		this.bombCharge++;
 		if(this.bombCharge==3){
-			this.hasBomb = true;
 			if(this.colour){
 				setTimeout(() => {
 					if(sounds)sounds.playEffect(sound.Effect.hasBomb);
-				}, 500);
+					this.hasBomb = true;
+				}, 200);
 			}
 		}
 		this.bombChargeDuration = 0;
@@ -507,7 +507,7 @@ class Ball {
 						this.speed = Math.min(this.speed + 0.3, 5);
 
 					}else if(wasFarScreenEdge){
-						this.speed = Math.max(this.speed - 0.7, 1);
+						this.speed = Math.max(this.speed - 0.7);
 					}
 
 				}else{

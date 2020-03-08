@@ -587,15 +587,16 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     put(this.x, this.y, this.colour);
                 };
                 Ball.prototype.get_bomb_charge = function () {
+                    var _this = this;
                     this.lastBombCharge = this.bombCharge;
                     this.bombCharge++;
                     if (this.bombCharge == 3) {
-                        this.hasBomb = true;
                         if (this.colour) {
                             setTimeout(function () {
                                 if (sounds)
                                     sounds.playEffect(sound.Effect.hasBomb);
-                            }, 500);
+                                _this.hasBomb = true;
+                            }, 200);
                         }
                     }
                     this.bombChargeDuration = 0;
@@ -751,7 +752,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                 this_1.speed = Math.min(this_1.speed + 0.3, 5);
                                                             }
                                                             else if (wasFarScreenEdge) {
-                                                                this_1.speed = Math.max(this_1.speed - 0.7, 1);
+                                                                this_1.speed = Math.max(this_1.speed - 0.7);
                                                             }
                                                         }
                                                         else {
