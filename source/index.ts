@@ -471,13 +471,9 @@ class Ball {
 					}
 				}
 
-				if(sounds)sounds.playEffect(sound.Effect.blip, 1.0, (Math.random()*2-1)*50);
-
-				if(hitPaddle&&this.colour){
-					if(sounds)sounds.playEffect(sound.Effect.paddle, 1.0, this.paddleCombo*100);
-				}
-
 				if(hitPaddle){
+					if(sounds)sounds.playEffect(sound.Effect.blip, 1.0, (Math.random()*2-1)*50);
+
 					if(this.colour){
 						if(sounds)sounds.playEffect(sound.Effect.paddle, 1.0, this.paddleCombo*100);
 					}
@@ -486,10 +482,19 @@ class Ball {
 
 				}else if(wasFarScreenEdge){
 					if(this.paddleCombo>0&&this.colour){
-						if(sounds)sounds.playEffect(sound.Effect.paddleMiss);
+						if(sounds)sounds.playEffect(sound.Effect.paddleMiss, 2.0);
+
+						setTimeout(() => {
+							if(sounds)sounds.playEffect(sound.Effect.paddleMiss, 2.0, -300);
+						}, 200);
+					}else{
+						if(sounds)sounds.playEffect(sound.Effect.blip, 1.0, (Math.random()*2-1)*50);
 					}
 					this.paddleCombo = 0;
 					this.reset_bomb_charge();
+					
+				}else{
+					if(sounds)sounds.playEffect(sound.Effect.blip, 1.0, (Math.random()*2-1)*50);
 				}
 
 				if(this.isSuper&&!wasScreenEdge&&!hitPaddle){
@@ -647,10 +652,12 @@ async function play_intro(fast:boolean) {
 
 	swap();
 
-	balls.push(new Ball(true, renderer.width/2 + 5, top*0.5 + (renderer.height-bottom)*0.5, 1, 0));
-	balls.push(new Ball(false, renderer.width/2 - 5, top*0.5 + (renderer.height-bottom)*0.5, -1, 0));
+	balls.push(new Ball(true, renderer.width/2 + 5, top*0.5 + (renderer.height-bottom)*0.5, 1, Math.random()*0.3-0.15));
+	balls.push(new Ball(false, renderer.width/2 - 5, top*0.5 + (renderer.height-bottom)*0.5, -1, Math.random()*0.3-0.15));
 
-	await sleep(500);
+	swap();
+
+	await sleep(300);
 	
 	const aiPaddle = new Paddle(false, 2, renderer.height/2 - 8, 16);
 	aiPaddle.isAi = true;

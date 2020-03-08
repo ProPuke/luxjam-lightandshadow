@@ -77,7 +77,7 @@ System.register([], function (exports_1, context_1) {
                                         this.loadEffect(Effect.boom, 'sounds/bomb_2.wav', 0.6),
                                         this.loadEffect(Effect.blip, 'sounds/blip.wav', 0.6),
                                         this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
-                                        this.loadEffect(Effect.paddleMiss, 'sounds/paddle_miss.wav', 0.7),
+                                        this.loadEffect(Effect.paddleMiss, 'sounds/paddle_miss.wav', 1.5),
                                         this.loadEffect(Effect.hasBomb, 'sounds/bomb_collect.wav', 1.5),
                                         this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0)
                                     ])];

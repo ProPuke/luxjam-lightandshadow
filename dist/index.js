@@ -324,9 +324,10 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     case 14:
                         _a.sent();
                         swap();
-                        balls.push(new Ball(true, renderer.width / 2 + 5, top * 0.5 + (renderer.height - bottom) * 0.5, 1, 0));
-                        balls.push(new Ball(false, renderer.width / 2 - 5, top * 0.5 + (renderer.height - bottom) * 0.5, -1, 0));
-                        return [4 /*yield*/, sleep(500)];
+                        balls.push(new Ball(true, renderer.width / 2 + 5, top * 0.5 + (renderer.height - bottom) * 0.5, 1, Math.random() * 0.3 - 0.15));
+                        balls.push(new Ball(false, renderer.width / 2 - 5, top * 0.5 + (renderer.height - bottom) * 0.5, -1, Math.random() * 0.3 - 0.15));
+                        swap();
+                        return [4 /*yield*/, sleep(300)];
                     case 15:
                         _a.sent();
                         aiPaddle = new Paddle(false, 2, renderer.height / 2 - 8, 16);
@@ -718,13 +719,9 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                 }
                                                             }
                                                         }
-                                                        if (sounds)
-                                                            sounds.playEffect(sound.Effect.blip, 1.0, (Math.random() * 2 - 1) * 50);
-                                                        if (hitPaddle && this_1.colour) {
-                                                            if (sounds)
-                                                                sounds.playEffect(sound.Effect.paddle, 1.0, this_1.paddleCombo * 100);
-                                                        }
                                                         if (hitPaddle) {
+                                                            if (sounds)
+                                                                sounds.playEffect(sound.Effect.blip, 1.0, (Math.random() * 2 - 1) * 50);
                                                             if (this_1.colour) {
                                                                 if (sounds)
                                                                     sounds.playEffect(sound.Effect.paddle, 1.0, this_1.paddleCombo * 100);
@@ -735,10 +732,22 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         else if (wasFarScreenEdge) {
                                                             if (this_1.paddleCombo > 0 && this_1.colour) {
                                                                 if (sounds)
-                                                                    sounds.playEffect(sound.Effect.paddleMiss);
+                                                                    sounds.playEffect(sound.Effect.paddleMiss, 2.0);
+                                                                setTimeout(function () {
+                                                                    if (sounds)
+                                                                        sounds.playEffect(sound.Effect.paddleMiss, 2.0, -300);
+                                                                }, 200);
+                                                            }
+                                                            else {
+                                                                if (sounds)
+                                                                    sounds.playEffect(sound.Effect.blip, 1.0, (Math.random() * 2 - 1) * 50);
                                                             }
                                                             this_1.paddleCombo = 0;
                                                             this_1.reset_bomb_charge();
+                                                        }
+                                                        else {
+                                                            if (sounds)
+                                                                sounds.playEffect(sound.Effect.blip, 1.0, (Math.random() * 2 - 1) * 50);
                                                         }
                                                         if (this_1.isSuper && !wasScreenEdge && !hitPaddle) {
                                                             this_1.velX = oldVelX;
