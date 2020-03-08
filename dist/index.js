@@ -465,7 +465,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             input = new Input();
             window.addEventListener("click", function (event) {
                 if (!sounds) {
-                    sounds = new sound.Manager(0.2);
+                    sounds = new sound.Manager(1.0);
                     sounds.load().then(function () {
                         if (sounds)
                             sounds.playMusic(sound.Music.main);
@@ -592,8 +592,10 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     if (this.bombCharge == 3) {
                         this.hasBomb = true;
                         if (this.colour) {
-                            if (sounds)
-                                sounds.playEffect(sound.Effect.hasBomb);
+                            setTimeout(function () {
+                                if (sounds)
+                                    sounds.playEffect(sound.Effect.hasBomb);
+                            }, 500);
                         }
                     }
                     this.bombChargeDuration = 0;
@@ -715,7 +717,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                             }
                                                         }
                                                         if (sounds)
-                                                            sounds.playEffect(sound.Effect.blip);
+                                                            sounds.playEffect(sound.Effect.blip, 1.0, (Math.random() * 2 - 1) * 50);
                                                         if (hitPaddle && this_1.colour) {
                                                             if (sounds)
                                                                 sounds.playEffect(sound.Effect.paddle, 1.0, this_1.paddleCombo * 100);

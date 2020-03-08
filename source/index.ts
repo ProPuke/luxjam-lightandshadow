@@ -195,7 +195,7 @@ const input = new Input();
 
 window.addEventListener("click", (event:MouseEvent) => {
 	if(!sounds){
-		sounds = new sound.Manager(0.2);
+		sounds = new sound.Manager(1.0);
 		sounds.load().then(() => {
 			if(sounds) sounds.playMusic(sound.Music.main);
 		});
@@ -350,7 +350,9 @@ class Ball {
 		if(this.bombCharge==3){
 			this.hasBomb = true;
 			if(this.colour){
-				if(sounds)sounds.playEffect(sound.Effect.hasBomb);
+				setTimeout(() => {
+					if(sounds)sounds.playEffect(sound.Effect.hasBomb);
+				}, 500);
 			}
 		}
 		this.bombChargeDuration = 0;
@@ -468,7 +470,7 @@ class Ball {
 					}
 				}
 
-				if(sounds)sounds.playEffect(sound.Effect.blip);
+				if(sounds)sounds.playEffect(sound.Effect.blip, 1.0, (Math.random()*2-1)*50);
 
 				if(hitPaddle&&this.colour){
 					if(sounds)sounds.playEffect(sound.Effect.paddle, 1.0, this.paddleCombo*100);

@@ -71,18 +71,15 @@ System.register([], function (exports_1, context_1) {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0: return [4 /*yield*/, Promise.all([
-                                        this.loadEffect(Effect.debug, 'sounds/debug.mp3', 1.0),
-                                        this.loadEffect(Effect.boom, 'sounds/explosion1.mp3', 0.6),
-                                        this.loadEffect(Effect.boom, 'sounds/explosion2.mp3', 0.6),
-                                        this.loadEffect(Effect.boom, 'sounds/explosion3.mp3', 0.6),
-                                        this.loadEffect(Effect.blip, 'sounds/blip1.mp3', 0.2),
-                                        this.loadEffect(Effect.blip, 'sounds/blip2.mp3', 0.2),
-                                        this.loadEffect(Effect.blip, 'sounds/blip3.mp3', 0.2),
-                                        this.loadEffect(Effect.blip, 'sounds/blip4.mp3', 0.2),
-                                        this.loadEffect(Effect.paddle, 'sounds/paddle.mp3', 1.0),
-                                        this.loadEffect(Effect.paddleMiss, 'sounds/paddleMiss.mp3', 1.0),
-                                        this.loadEffect(Effect.hasBomb, 'sounds/hasBomb.mp3', 1.0),
-                                        this.loadMusic(Music.main, 'music/main.mp3', 1.0, 0.0)
+                                        this.loadEffect(Effect.debug, 'sounds/debug.mp3', .4),
+                                        this.loadEffect(Effect.boom, 'sounds/bomb_0.wav', 0.6),
+                                        this.loadEffect(Effect.boom, 'sounds/bomb_1.wav', 0.6),
+                                        this.loadEffect(Effect.boom, 'sounds/bomb_2.wav', 0.6),
+                                        this.loadEffect(Effect.blip, 'sounds/blip.wav', 0.6),
+                                        this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
+                                        this.loadEffect(Effect.paddleMiss, 'sounds/paddle_miss.wav', 0.7),
+                                        this.loadEffect(Effect.hasBomb, 'sounds/bomb_collect.wav', 0.7),
+                                        this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0)
                                     ])];
                                 case 1:
                                     _a.sent();
