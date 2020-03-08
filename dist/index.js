@@ -174,6 +174,20 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
     function swap() {
         renderer.swap();
     }
+    function segment(active, ox, oy, width, height) {
+        for (var y = 0; y < height; y++) {
+            for (var x = height - y; x < width - y; x++) {
+                put(ox + x, oy + y, active || (x + y) % 2 == 1);
+            }
+        }
+    }
+    function block(colour, ox, oy, width, height) {
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                put(ox + x, oy + y, colour);
+            }
+        }
+    }
     function normal(c, x, y) {
         var nx = 0;
         var ny = 0;
@@ -199,7 +213,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
     }
     function play_intro(fast) {
         return __awaiter(this, void 0, void 0, function () {
-            var x, y;
+            var x, y, aiPaddle;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -243,15 +257,14 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     case 10:
                         _a.sent();
                         _a.label = 11;
-                    case 11: 
-                    // if(!fast)await sleep(1500);
-                    return [4 /*yield*/, sleep(1500)];
-                    case 12:
+                    case 11:
                         // if(!fast)await sleep(1500);
-                        _a.sent();
-                        balls.push(new Ball(true, renderer.width - 5, top + 10, -1, 1));
-                        balls.push(new Ball(false, 5, renderer.height - top - 10, 1, -1));
-                        paddles.push(new Paddle(false, 2, renderer.height / 2 - 8, 16));
+                        // await sleep(1500);
+                        balls.push(new Ball(true, renderer.width / 2 + 5, top * 0.5 + (renderer.height - bottom) * 0.5, 1, 0));
+                        balls.push(new Ball(false, renderer.width / 2 - 5, top * 0.5 + (renderer.height - bottom) * 0.5, -1, 0));
+                        aiPaddle = new Paddle(false, 2, renderer.height / 2 - 8, 16);
+                        aiPaddle.isAi = true;
+                        paddles.push(aiPaddle);
                         paddles.push(new Paddle(true, renderer.width - 2, renderer.height / 2 - 8, 16));
                         swap();
                         return [2 /*return*/];
@@ -261,12 +274,12 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
     }
     function run() {
         return __awaiter(this, void 0, void 0, function () {
-            var doAi, pending, _i, balls_1, ball, targetY, targetY, _a, paddles_1, paddle, _b, bombs_1, bomb;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var doAi, pending, _i, balls_1, ball, _a, paddles_1, paddle, _b, paddles_2, paddle, targetY, targetY, _c, bombs_1, bomb, ball, combo, combo;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         if (!true) return [3 /*break*/, 3];
-                        doAi = frame % 2 == 0 && paddles.length > 0;
+                        doAi = frame % 2 == 0;
                         if (doAi) {
                             aiInput.up = false;
                             aiInput.down = false;
@@ -276,39 +289,81 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                             ball = balls_1[_i];
                             pending.push(ball.update());
                             if (doAi) {
-                                if (ball.x < renderer.width / 2 && ball.velX < 0) {
-                                    if (ball.y < paddles[0].y + paddles[0].height / 2) {
-                                        aiInput.up = true;
-                                    }
-                                    else {
-                                        aiInput.down = true;
+                                for (_a = 0, paddles_1 = paddles; _a < paddles_1.length; _a++) {
+                                    paddle = paddles_1[_a];
+                                    if (paddle.isAi) {
+                                        if (ball.x < renderer.width / 2 && ball.velX < 0) {
+                                            if (ball.y <= paddle.y + paddle.height * 0.3) {
+                                                aiInput.up = true;
+                                            }
+                                            else if (ball.y >= paddle.y + paddle.height * 0.6) {
+                                                aiInput.down = true;
+                                            }
+                                            else {
+                                                if (Math.random() > 0.5) {
+                                                    aiInput.up = true;
+                                                }
+                                                else {
+                                                    aiInput.down = true;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                         return [4 /*yield*/, Promise.all(pending)];
                     case 1:
-                        _c.sent();
-                        if (paddles.length > 0) {
-                            targetY = (aiInput.up ? -8 : 0) + (aiInput.down ? +8 : 0);
-                            paddles[0].velY = paddles[0].velY * 0.7 + targetY * 0.3;
-                        }
-                        if (paddles.length > 1) {
-                            targetY = (input.up ? -8 : 0) + (input.down ? +8 : 0);
-                            paddles[1].velY = paddles[1].velY * 0.7 + targetY * 0.3;
-                        }
-                        for (_a = 0, paddles_1 = paddles; _a < paddles_1.length; _a++) {
-                            paddle = paddles_1[_a];
+                        _d.sent();
+                        for (_b = 0, paddles_2 = paddles; _b < paddles_2.length; _b++) {
+                            paddle = paddles_2[_b];
+                            if (paddle.isAi) {
+                                targetY = (aiInput.up ? -8 : 0) + (aiInput.down ? +8 : 0);
+                                paddle.velY = paddle.velY * 0.7 + targetY * 0.3;
+                            }
+                            else {
+                                targetY = (input.up ? -8 : 0) + (input.down ? +8 : 0);
+                                paddle.velY = paddle.velY * 0.7 + targetY * 0.3;
+                            }
                             paddle.update();
                         }
-                        for (_b = 0, bombs_1 = bombs; _b < bombs_1.length; _b++) {
-                            bomb = bombs_1[_b];
+                        for (_c = 0, bombs_1 = bombs; _c < bombs_1.length; _c++) {
+                            bomb = bombs_1[_c];
                             bomb.update();
+                        }
+                        if (balls.length > 0) {
+                            ball = balls[0];
+                            {
+                                combo = ball.bombChargeDuration < 10 ? (frame % 4 < 2 ? ball.lastBombCharge : ball.bombCharge) : ball.bombCharge;
+                                if (ball.hasBomb) {
+                                    if (frame % 4 < 2) {
+                                        combo = 0;
+                                    }
+                                }
+                                segment(combo > 0, renderer.width - 30 - 15 - 15, renderer.height - 8, 20, 7);
+                                segment(combo > 1, renderer.width - 30 - 15, renderer.height - 8, 20, 7);
+                                segment(combo > 2, renderer.width - 30, renderer.height - 8, 20, 7);
+                            }
+                            {
+                                combo = ball.superChargeDuration < 10 ? (frame % 4 < 2 ? ball.lastSuperCharge : ball.superCharge) : ball.superCharge;
+                                if (ball.isSuper) {
+                                    if (frame % 4 < 2) {
+                                        combo = 0;
+                                    }
+                                    else {
+                                        combo = 4;
+                                    }
+                                }
+                                block(combo > 0, renderer.width - 8, renderer.height - 8, 3, 3);
+                                block(combo > 1, renderer.width - 4, renderer.height - 8, 3, 3);
+                                block(combo > 2, renderer.width - 8, renderer.height - 4, 3, 3);
+                                block(combo > 3, renderer.width - 4, renderer.height - 4, 3, 3);
+                            }
                         }
                         swap();
                         return [4 /*yield*/, sleep(50)];
                     case 2:
-                        _c.sent();
+                        _d.sent();
                         frame++;
                         return [3 /*break*/, 0];
                     case 3: return [2 /*return*/];
@@ -374,6 +429,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             bottom = 10;
             Paddle = /** @class */ (function () {
                 function Paddle(colour, x, y, height) {
+                    this.isAi = false;
                     this.velX = 0;
                     this.velY = 0;
                     this.colour = colour;
@@ -432,9 +488,16 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     this.velX = 0;
                     this.velY = 0;
                     this.speed = 1;
-                    this.isSuper = 0;
                     this.bombCount = 0;
                     this.paddleCombo = 0;
+                    this.bombCharge = 0;
+                    this.lastBombCharge = 0;
+                    this.bombChargeDuration = 0;
+                    this.hasBomb = false;
+                    this.superCharge = 0;
+                    this.lastSuperCharge = 0;
+                    this.superChargeDuration = 0;
+                    this.isSuper = 0;
                     this.history = [[0, 0]];
                     this.colour = colour;
                     this.x = x;
@@ -452,10 +515,56 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     this.y = y;
                     put(this.x, this.y, this.colour);
                 };
+                Ball.prototype.get_bomb_charge = function () {
+                    this.lastBombCharge = this.bombCharge;
+                    this.bombCharge++;
+                    if (this.bombCharge == 3) {
+                        this.hasBomb = true;
+                        if (this.colour) {
+                            if (sounds)
+                                sounds.playEffect(sound.Effect.hasBomb, 1.0);
+                        }
+                    }
+                    this.bombChargeDuration = 0;
+                };
+                Ball.prototype.reset_bomb_charge = function () {
+                    this.lastBombCharge = this.bombCharge;
+                    this.bombCharge = 0;
+                    this.bombChargeDuration = 0;
+                };
+                Ball.prototype.get_super_charge = function () {
+                    this.lastSuperCharge = this.superCharge;
+                    this.superCharge++;
+                    if (this.superCharge == 4) {
+                        this.superCharge = 0;
+                        this.go_super();
+                    }
+                    this.superChargeDuration = 0;
+                };
+                Ball.prototype.reset_super_charge = function () {
+                    this.lastSuperCharge = 0;
+                    this.superCharge = 0;
+                    this.superChargeDuration = 0;
+                };
                 Ball.prototype.update = function () {
                     return __awaiter(this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, this.update_movement()];
+                                case 1:
+                                    _a.sent();
+                                    if (this.isSuper > 0)
+                                        this.isSuper--;
+                                    this.bombChargeDuration++;
+                                    this.superChargeDuration++;
+                                    return [2 /*return*/];
+                            }
+                        });
+                    });
+                };
+                Ball.prototype.update_movement = function () {
+                    return __awaiter(this, void 0, void 0, function () {
                         var trailLength, _i, _a, history_1, _loop_1, this_1, newX, newY, i, _b, _c, history_2;
-                        var _this = this;
                         return __generator(this, function (_d) {
                             switch (_d.label) {
                                 case 0:
@@ -467,9 +576,9 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                         put(history_1[0], history_1[1], !this.colour);
                                     }
                                     _loop_1 = function () {
-                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, wasFarScreenEdge, oldVelX, oldVelY, colX, colY, _a, paddles_2, paddle, paddlePhase, length_1, x_1, y_1;
-                                        return __generator(this, function (_b) {
-                                            switch (_b.label) {
+                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, wasFarScreenEdge, oldVelX, oldVelY, colX, colY, i2, paddle, paddlePhase, length_1, x_1, y_1;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
                                                 case 0:
                                                     newX = this_1.x + this_1.velX;
                                                     newY = this_1.y + this_1.velY;
@@ -481,7 +590,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     hitBomb = false;
                                                     hitPaddle = false;
                                                     _i = 0, bombs_2 = bombs;
-                                                    _b.label = 1;
+                                                    _a.label = 1;
                                                 case 1:
                                                     if (!(_i < bombs_2.length)) return [3 /*break*/, 4];
                                                     bomb = bombs_2[_i];
@@ -489,16 +598,13 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                     hitBomb = true;
                                                     return [4 /*yield*/, bomb.explode(this_1.colour)];
                                                 case 2:
-                                                    _b.sent();
-                                                    this_1.bombCount++;
-                                                    if (this_1.bombCount % 4 == 0) {
-                                                        this_1.go_super();
-                                                    }
+                                                    _a.sent();
+                                                    this_1.get_super_charge();
                                                     this_1.velX *= -1;
                                                     this_1.velY *= -1;
                                                     newX = this_1.x + this_1.velX;
                                                     newY = this_1.y + this_1.velY;
-                                                    _b.label = 3;
+                                                    _a.label = 3;
                                                 case 3:
                                                     _i++;
                                                     return [3 /*break*/, 1];
@@ -516,16 +622,25 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                             this_1.velX = clamp(this_1.velX * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
                                                         if (colY)
                                                             this_1.velY = clamp(this_1.velY * -1 + Math.random() * 0.1 - 0.05, -1.2, 1.2);
-                                                        for (_a = 0, paddles_2 = paddles; _a < paddles_2.length; _a++) {
-                                                            paddle = paddles_2[_a];
+                                                        for (i2 = 0; i2 < paddles.length; i2++) {
+                                                            paddle = paddles[i2];
                                                             if (paddle.collides(newX, newY)) {
-                                                                hitPaddle = true;
-                                                                paddlePhase = clamp((newY - paddle.y) / paddle.height, 0.0, 1.0);
-                                                                length_1 = this_1.velX * this_1.velX + this_1.velY * this_1.velY;
-                                                                this_1.velY = clamp(this_1.velY - 1.5 + paddlePhase * 3.0, -0.9, 0.9);
-                                                                //renormalise to same length, but keeping the new y velcity
-                                                                this_1.velY = clamp(this_1.velY, -length_1, length_1);
-                                                                this_1.velX = Math.sign(this_1.velX) * Math.sqrt(length_1 * length_1 - this_1.velY * this_1.velY);
+                                                                if (paddle.colour == this_1.colour) {
+                                                                    hitPaddle = true;
+                                                                    paddlePhase = clamp((newY - paddle.y) / paddle.height, 0.0, 1.0);
+                                                                    length_1 = Math.sqrt(this_1.velX * this_1.velX + this_1.velY * this_1.velY);
+                                                                    this_1.velY = this_1.velY - 1.5 + paddlePhase * 3.0;
+                                                                    //renormalise to same length, but keeping the new y velcity
+                                                                    this_1.velY = clamp(this_1.velY, -length_1 * 0.9, length_1 * 0.8);
+                                                                    this_1.velX = Math.sign(this_1.velX) * Math.sqrt(length_1 * length_1 - this_1.velY * this_1.velY);
+                                                                }
+                                                                else {
+                                                                    bigBoom(paddle.x, paddle.y, this_1.colour);
+                                                                    bigBoom(paddle.x, paddle.y + paddle.height / 2, this_1.colour);
+                                                                    bigBoom(paddle.x, paddle.y + paddle.height, this_1.colour);
+                                                                    paddles.splice(i, 1);
+                                                                    i--;
+                                                                }
                                                             }
                                                         }
                                                         if (sounds)
@@ -540,6 +655,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                     sounds.playEffect(sound.Effect.paddle, 1.0, this_1.paddleCombo * 100);
                                                             }
                                                             this_1.paddleCombo++;
+                                                            this_1.get_bomb_charge();
                                                         }
                                                         else if (wasFarScreenEdge) {
                                                             if (this_1.paddleCombo > 0 && this_1.colour) {
@@ -547,6 +663,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                     sounds.playEffect(sound.Effect.paddleMiss, 1.0);
                                                             }
                                                             this_1.paddleCombo = 0;
+                                                            this_1.reset_bomb_charge();
                                                         }
                                                         if (this_1.isSuper && !wasScreenEdge && !hitPaddle) {
                                                             this_1.velX = oldVelX;
@@ -566,14 +683,16 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         }
                                                         else {
                                                             boom(this_1.x, this_1.y, !this_1.colour);
-                                                            if (!this_1.isSuper && Math.random() < 1 / 5.0) {
+                                                            if (this_1.hasBomb) {
                                                                 x_1 = this_1.x + (this_1.colour ? 4 : -4);
                                                                 y_1 = this_1.y;
                                                                 setTimeout(function () {
-                                                                    if (Math.abs(x_1 - _this.x) > 10 && Math.abs(y_1 - _this.y) > 10) {
-                                                                        bombs.push(new Bomb(x_1, y_1));
-                                                                    }
-                                                                }, 1000);
+                                                                    bombs.push(new Bomb(x_1, y_1));
+                                                                }, 200);
+                                                                this_1.hasBomb = false;
+                                                                this_1.bombCharge = 0;
+                                                                this_1.lastBombCharge = 0;
+                                                                this_1.bombChargeDuration = 0;
                                                             }
                                                         }
                                                     }
@@ -602,10 +721,8 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                     }
                                     for (_b = 0, _c = this.history; _b < _c.length; _b++) {
                                         history_2 = _c[_b];
-                                        put(history_2[0], history_2[1], this.isSuper ? frame % 4 < 2 : this.colour);
+                                        put(history_2[0], history_2[1], this.isSuper || this.hasBomb ? frame % 4 < 2 : this.colour);
                                     }
-                                    if (this.isSuper > 0)
-                                        this.isSuper--;
                                     return [2 /*return*/];
                             }
                         });

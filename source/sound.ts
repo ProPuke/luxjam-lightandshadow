@@ -3,7 +3,8 @@ export enum Effect {
 	boom,
 	blip,
 	paddle,
-	paddleMiss
+	paddleMiss,
+	hasBomb
 }
 
 export class Manager {
@@ -28,6 +29,7 @@ export class Manager {
 		this.load(Effect.blip, 'sounds/blip4.wav');
 		this.load(Effect.paddle, 'sounds/paddle.wav');
 		this.load(Effect.paddleMiss, 'sounds/paddleMiss.wav');
+		this.load(Effect.hasBomb, 'sounds/hasBomb.wav');
 	}
 
 	load(key:Effect, path:string) {

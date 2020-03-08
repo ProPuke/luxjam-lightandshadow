@@ -11,6 +11,7 @@ System.register([], function (exports_1, context_1) {
                 Effect[Effect["blip"] = 2] = "blip";
                 Effect[Effect["paddle"] = 3] = "paddle";
                 Effect[Effect["paddleMiss"] = 4] = "paddleMiss";
+                Effect[Effect["hasBomb"] = 5] = "hasBomb";
             })(Effect || (Effect = {}));
             exports_1("Effect", Effect);
             Manager = /** @class */ (function () {
@@ -32,6 +33,7 @@ System.register([], function (exports_1, context_1) {
                     this.load(Effect.blip, 'sounds/blip4.wav');
                     this.load(Effect.paddle, 'sounds/paddle.wav');
                     this.load(Effect.paddleMiss, 'sounds/paddleMiss.wav');
+                    this.load(Effect.hasBomb, 'sounds/hasBomb.wav');
                 }
                 Manager.prototype.load = function (key, path) {
                     var _this = this;

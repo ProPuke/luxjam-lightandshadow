@@ -132,6 +132,22 @@ function swap() {
 	renderer.swap();
 }
 
+function segment(active:boolean, ox:number, oy:number, width:number, height:number) {
+	for(let y=0;y<height;y++){
+		for(let x=height-y;x<width-y;x++){
+			put(ox+x, oy+y, active||(x+y)%2==1);
+		}
+	} 
+}
+
+function block(colour:boolean, ox:number, oy:number, width:number, height:number) {
+	for(let y=0;y<height;y++){
+		for(let x=0;x<width;x++){
+			put(ox+x, oy+y, colour);
+		}
+	} 
+}
+
 function normal(c:boolean, x:number, y:number):[number, number] {
 	let nx = 0;
 	let ny = 0;
@@ -196,6 +212,8 @@ const top = 10;
 const bottom = 10;
 
 class Paddle {
+	isAi = false;
+
 	colour:boolean;
 	x:number;
 	y:number;
@@ -267,9 +285,20 @@ class Ball {
 	velX = 0;
 	velY = 0;
 	speed = 1;
-	isSuper = 0;
 	bombCount = 0;
+
 	paddleCombo = 0;
+
+	bombCharge = 0;
+	lastBombCharge = 0;
+	bombChargeDuration = 0;
+	hasBomb = false;
+
+	superCharge = 0;
+	lastSuperCharge = 0;
+	superChargeDuration = 0;
+	isSuper = 0;
+
 	history:[number,number][] = [[0,0]]
 
 	constructor(colour:boolean, x:number, y:number, velX:number, velY:number) {
@@ -295,7 +324,50 @@ class Ball {
 		put(this.x, this.y, this.colour);
 	}
 
+	get_bomb_charge() {
+		this.lastBombCharge = this.bombCharge;
+		this.bombCharge++;
+		if(this.bombCharge==3){
+			this.hasBomb = true;
+			if(this.colour){
+				if(sounds)sounds.playEffect(sound.Effect.hasBomb, 1.0);
+			}
+		}
+		this.bombChargeDuration = 0;
+	}
+
+	reset_bomb_charge() {
+		this.lastBombCharge = this.bombCharge;
+		this.bombCharge = 0;
+		this.bombChargeDuration = 0;
+	}
+
+	get_super_charge() {
+		this.lastSuperCharge = this.superCharge;
+		this.superCharge++;
+		if(this.superCharge==4){
+			this.superCharge = 0;
+			this.go_super();
+		}
+		this.superChargeDuration = 0;
+	}
+
+	reset_super_charge() {
+		this.lastSuperCharge = 0;
+		this.superCharge = 0;
+		this.superChargeDuration = 0;
+	}
+
 	async update() {
+		await this.update_movement();
+
+		if(this.isSuper>0) this.isSuper--;
+
+		this.bombChargeDuration++;
+		this.superChargeDuration++;
+	}
+
+	async update_movement() {
 		if(!this.velX&&!this.velY) return;
 
 		const trailLength = Math.min(this.speed*2, 20);
@@ -324,10 +396,7 @@ class Ball {
 					hitBomb = true;
 					await bomb.explode(this.colour);
 
-					this.bombCount++;
-					if(this.bombCount%4==0){
-						this.go_super();
-					}
+					this.get_super_charge();
 
 					this.velX *= -1;
 					this.velY *= -1;
@@ -353,19 +422,29 @@ class Ball {
 				if(colX) this.velX = clamp(this.velX * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
 				if(colY) this.velY = clamp(this.velY * -1 + Math.random()*0.1-0.05, -1.2, 1.2);
 
-				for(const paddle of paddles){
+				for(let i2=0;i2<paddles.length;i2++){
+					const paddle = paddles[i2];
+
 					if(paddle.collides(newX, newY)){
-						hitPaddle = true;
-						const paddlePhase = clamp((newY-paddle.y)/paddle.height, 0.0, 1.0);
+						if(paddle.colour==this.colour){
+							hitPaddle = true;
+							const paddlePhase = clamp((newY-paddle.y)/paddle.height, 0.0, 1.0);
 
-						const length = this.velX*this.velX + this.velY*this.velY;
+							const length = Math.sqrt(this.velX*this.velX + this.velY*this.velY);
 
-						this.velY = clamp(this.velY - 1.5 + paddlePhase * 3.0, -0.9, 0.9);
+							this.velY = this.velY - 1.5 + paddlePhase * 3.0;
 
-						//renormalise to same length, but keeping the new y velcity
-						this.velY = clamp(this.velY, -length, length);
-						this.velX = Math.sign(this.velX) * Math.sqrt(length*length-this.velY*this.velY);
+							//renormalise to same length, but keeping the new y velcity
+							this.velY = clamp(this.velY, -length*0.9, length*0.8);
+							this.velX = Math.sign(this.velX) * Math.sqrt(length*length-this.velY*this.velY);
 						
+						}else{
+							bigBoom(paddle.x, paddle.y, this.colour);
+							bigBoom(paddle.x, paddle.y+paddle.height/2, this.colour);
+							bigBoom(paddle.x, paddle.y+paddle.height, this.colour);
+							paddles.splice(i, 1);
+							i--;
+						}
 					}
 				}
 
@@ -380,12 +459,14 @@ class Ball {
 						if(sounds)sounds.playEffect(sound.Effect.paddle, 1.0, this.paddleCombo*100);
 					}
 					this.paddleCombo++;
+					this.get_bomb_charge();
 
 				}else if(wasFarScreenEdge){
 					if(this.paddleCombo>0&&this.colour){
 						if(sounds)sounds.playEffect(sound.Effect.paddleMiss, 1.0);
 					}
-					this.paddleCombo=0;
+					this.paddleCombo = 0;
+					this.reset_bomb_charge();
 				}
 
 				if(this.isSuper&&!wasScreenEdge&&!hitPaddle){
@@ -409,16 +490,19 @@ class Ball {
 
 				}else{
 					boom(this.x, this.y, !this.colour);
-
-					if(!this.isSuper&&Math.random()<1/5.0){
+					
+					if(this.hasBomb){
 						const x = this.x + (this.colour?4:-4);
 						const y = this.y;
 
 						setTimeout(() => {
-							if(Math.abs(x-this.x)>10&&Math.abs(y-this.y)>10){
-								bombs.push(new Bomb(x, y));
-							}
-						}, 1000);
+							bombs.push(new Bomb(x, y));
+						}, 200);
+
+						this.hasBomb = false;
+						this.bombCharge = 0;
+						this.lastBombCharge = 0;
+						this.bombChargeDuration = 0;
 					}
 				}
 			}
@@ -434,10 +518,8 @@ class Ball {
 		}
 
 		for(const history of this.history){
-			put(history[0], history[1], this.isSuper?frame%4<2:this.colour);
+			put(history[0], history[1], this.isSuper||this.hasBomb?frame%4<2:this.colour);
 		}
-
-		if(this.isSuper>0) this.isSuper--;
 	}
 
 	go_super() {
@@ -514,12 +596,14 @@ async function play_intro(fast:boolean) {
 	if(!fast)await sleep(1500);
 
 	// if(!fast)await sleep(1500);
-	await sleep(1500);
+	// await sleep(1500);
 	
-	balls.push(new Ball(true, renderer.width - 5, top + 10, -1, 1));
-	balls.push(new Ball(false, 5, renderer.height - top - 10, 1, -1));
+	balls.push(new Ball(true, renderer.width/2 + 5, top*0.5 + (renderer.height-bottom)*0.5, 1, 0));
+	balls.push(new Ball(false, renderer.width/2 - 5, top*0.5 + (renderer.height-bottom)*0.5, -1, 0));
 
-	paddles.push(new Paddle(false, 2, renderer.height/2 - 8, 16));
+	const aiPaddle = new Paddle(false, 2, renderer.height/2 - 8, 16);
+	aiPaddle.isAi = true;
+	paddles.push(aiPaddle);
 	paddles.push(new Paddle(true, renderer.width-2, renderer.height/2 - 8, 16));
 
 	swap();
@@ -531,7 +615,7 @@ let frame = 0;
 
 async function run() {
 	while(true){
-		const doAi = frame%2==0&&paddles.length>0;
+		const doAi = frame%2==0;
 
 		if(doAi){
 			aiInput.up = false;
@@ -545,11 +629,21 @@ async function run() {
 			for(const ball of balls){
 				pending.push(ball.update());
 				if(doAi){
-					if(ball.x<renderer.width/2&&ball.velX<0){
-						if(ball.y<paddles[0].y+paddles[0].height/2){
-							aiInput.up = true;
-						}else{
-							aiInput.down = true;
+					for(const paddle of paddles){
+						if(paddle.isAi){
+							if(ball.x<renderer.width/2&&ball.velX<0){
+								if(ball.y<=paddle.y+paddle.height*0.3){
+									aiInput.up = true;
+								}else if(ball.y>=paddle.y+paddle.height*0.6){
+									aiInput.down = true;
+								}else{
+									if(Math.random()>0.5){
+										aiInput.up = true;
+									}else{
+										aiInput.down =true;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -558,22 +652,55 @@ async function run() {
 			await Promise.all(pending);
 		}
 
-		if(paddles.length>0){
-			var targetY = (aiInput.up?-8:0)+(aiInput.down?+8:0);
-			paddles[0].velY = paddles[0].velY*0.7 + targetY*0.3;
-		}
-
-		if(paddles.length>1){
-			var targetY = (input.up?-8:0)+(input.down?+8:0);
-			paddles[1].velY = paddles[1].velY*0.7 + targetY*0.3;
-		}
-
 		for(const paddle of paddles){
+			if(paddle.isAi){
+				var targetY = (aiInput.up?-8:0)+(aiInput.down?+8:0);
+				paddle.velY = paddle.velY*0.7 + targetY*0.3;
+			}else{
+				var targetY = (input.up?-8:0)+(input.down?+8:0);
+				paddle.velY = paddle.velY*0.7 + targetY*0.3;
+			}
+
 			paddle.update();
 		}
 
 		for(const bomb of bombs){
 			bomb.update();
+		}
+
+		if(balls.length>0){
+			const ball = balls[0];
+
+			{
+				let combo = ball.bombChargeDuration<10?(frame%4<2?ball.lastBombCharge:ball.bombCharge):ball.bombCharge;
+
+				if(ball.hasBomb){
+					if(frame%4<2){
+						combo = 0;
+					}
+				}
+
+				segment(combo>0, renderer.width-30-15-15, renderer.height-8, 20, 7);
+				segment(combo>1, renderer.width-30-15, renderer.height-8, 20, 7);
+				segment(combo>2, renderer.width-30, renderer.height-8, 20, 7);
+			}
+			
+			{
+				let combo = ball.superChargeDuration<10?(frame%4<2?ball.lastSuperCharge:ball.superCharge):ball.superCharge;
+
+				if(ball.isSuper){
+					if(frame%4<2){
+						combo = 0;
+					}else{
+						combo = 4;
+					}
+				}
+
+				block(combo>0, renderer.width-8, renderer.height-8, 3, 3);
+				block(combo>1, renderer.width-4, renderer.height-8, 3, 3);
+				block(combo>2, renderer.width-8, renderer.height-4, 3, 3);
+				block(combo>3, renderer.width-4, renderer.height-4, 3, 3);
+			}
 		}
 
 		swap();
