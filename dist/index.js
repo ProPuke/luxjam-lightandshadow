@@ -42,10 +42,17 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
         var cx = x;
         var cy = y;
         for (var i = 0; i < message.length; i++) {
+            if (message.charAt(i) == '\n') {
+                cx = x;
+                cy += glyph_height + 1;
+                continue;
+            }
             var glyph = glyphs[message.charCodeAt(i) - glyph_start];
             for (var gx = 0; gx < glyph_width; gx++) {
                 for (var gy = 0; gy < glyph_height; gy++) {
-                    renderer.put(cx + gx, cy + gy, glyph[gx + gy * glyph_width] != ' ' ? colour : !colour);
+                    if (glyph[gx + gy * glyph_width] != ' ') {
+                        renderer.put(cx + gx, cy + gy, colour);
+                    }
                 }
             }
             cx += glyph_width + 1;
@@ -209,11 +216,57 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             });
         });
     }
+    function wait_for_touch() {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (fulfill) {
+                        var listener = document.addEventListener("click", function () {
+                            fulfill();
+                        }, {
+                            once: true
+                        });
+                    })];
+            });
+        });
+    }
     function clamp(val, min, max) {
         return Math.min(Math.max(val, min), max);
     }
     function play_intro(fast) {
         return __awaiter(this, void 0, void 0, function () {
+            function printText(colour) {
+                return __awaiter(this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                print(renderer.width / 2 - 28, renderer.height / 2 - 16, !colour, "TOUCH T");
+                                print(renderer.width / 2 + 1, renderer.height / 2 - 16, colour, "O START");
+                                if (!!fast) return [3 /*break*/, 2];
+                                return [4 /*yield*/, sleep(500)];
+                            case 1:
+                                _a.sent();
+                                _a.label = 2;
+                            case 2:
+                                print(renderer.width / 2 + 16, renderer.height / 2 + 8, colour, "Controls:");
+                                if (!!fast) return [3 /*break*/, 4];
+                                return [4 /*yield*/, sleep(200)];
+                            case 3:
+                                _a.sent();
+                                _a.label = 4;
+                            case 4:
+                                print(renderer.width / 2 + 16, renderer.height / 2 + 8 + 10, colour, " UP / W");
+                                if (!!fast) return [3 /*break*/, 6];
+                                return [4 /*yield*/, sleep(200)];
+                            case 5:
+                                _a.sent();
+                                _a.label = 6;
+                            case 6:
+                                print(renderer.width / 2 + 16, renderer.height / 2 + 8 + 10 + 6, colour, " DOWN / S");
+                                return [2 /*return*/];
+                        }
+                    });
+                });
+            }
             var x, y, aiPaddle;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -233,6 +286,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                         }
                         put(renderer.width - 1 - x, top - 1, true);
                         put(renderer.width - 1 - x, renderer.height - bottom, true);
+                        if (!(x % 2 == 0)) return [3 /*break*/, 6];
                         if (!!fast) return [3 /*break*/, 5];
                         return [4 /*yield*/, sleep(50)];
                     case 4:
@@ -245,6 +299,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                         x++;
                         return [3 /*break*/, 3];
                     case 7:
+                        swap();
                         if (!!fast) return [3 /*break*/, 9];
                         return [4 /*yield*/, sleep(300)];
                     case 8:
@@ -254,15 +309,26 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                         print(5, 2, true, "Light & Shadow");
                         swap();
                         if (!!fast) return [3 /*break*/, 11];
-                        return [4 /*yield*/, sleep(1500)];
+                        return [4 /*yield*/, sleep(500)];
                     case 10:
                         _a.sent();
                         _a.label = 11;
-                    case 11:
-                        // if(!fast)await sleep(1500);
-                        // await sleep(1500);
+                    case 11: return [4 /*yield*/, printText(true)];
+                    case 12:
+                        _a.sent();
+                        swap();
+                        return [4 /*yield*/, wait_for_touch()];
+                    case 13:
+                        _a.sent();
+                        return [4 /*yield*/, printText(false)];
+                    case 14:
+                        _a.sent();
+                        swap();
                         balls.push(new Ball(true, renderer.width / 2 + 5, top * 0.5 + (renderer.height - bottom) * 0.5, 1, 0));
                         balls.push(new Ball(false, renderer.width / 2 - 5, top * 0.5 + (renderer.height - bottom) * 0.5, -1, 0));
+                        return [4 /*yield*/, sleep(500)];
+                    case 15:
+                        _a.sent();
                         aiPaddle = new Paddle(false, 2, renderer.height / 2 - 8, 16);
                         aiPaddle.isAi = true;
                         paddles.push(aiPaddle);
@@ -399,7 +465,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             input = new Input();
             window.addEventListener("click", function (event) {
                 if (!sounds) {
-                    sounds = new sound.Manager();
+                    sounds = new sound.Manager(0.2);
                     sounds.load().then(function () {
                         if (sounds)
                             sounds.playMusic(sound.Music.main);
@@ -787,7 +853,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             paddles = [];
             balls = [];
             bombs = [];
-            play_intro(true);
+            play_intro(false);
             frame = 0;
             run();
         }

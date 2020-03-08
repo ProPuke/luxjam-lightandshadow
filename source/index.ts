@@ -11,10 +11,17 @@ function put_text(x:number, y:number, message:string, colour:boolean, glyphs:str
 	let cx = x;
 	let cy = y;
 	for(let i=0;i<message.length;i++){
+		if(message.charAt(i)=='\n'){
+			cx = x;
+			cy += glyph_height+1;
+			continue;
+		}
 		const glyph = glyphs[message.charCodeAt(i)-glyph_start];
 		for(let gx=0;gx<glyph_width;gx++){
 			for(let gy=0;gy<glyph_height;gy++){
-				renderer.put(cx+gx, cy+gy, glyph[gx+gy*glyph_width]!=' '?colour:!colour);
+				if(glyph[gx+gy*glyph_width]!=' '){
+					renderer.put(cx+gx, cy+gy, colour);
+				}
 			}
 		}
 		cx += glyph_width+1;
@@ -164,6 +171,16 @@ async function sleep(ms:number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function wait_for_touch():Promise<undefined> {
+	return new Promise<undefined>((fulfill) => {
+		const listener = document.addEventListener("click", () => {
+			fulfill();
+		}, {
+			once: true
+		});
+	});
+}
+
 function clamp(val:number, min:number, max:number) {
 	return Math.min(Math.max(val, min), max);
 }
@@ -178,7 +195,7 @@ const input = new Input();
 
 window.addEventListener("click", (event:MouseEvent) => {
 	if(!sounds){
-		sounds = new sound.Manager();
+		sounds = new sound.Manager(0.2);
 		sounds.load().then(() => {
 			if(sounds) sounds.playMusic(sound.Music.main);
 		});
@@ -587,23 +604,48 @@ async function play_intro(fast:boolean) {
 		put(renderer.width-1-x, top-1, true);
 		put(renderer.width-1-x, renderer.height-bottom, true);
 
-		if(!fast)await sleep(50);
-		swap();
+		if(x%2==0){
+			if(!fast)await sleep(50);
+			swap();
+		}
 	}
+
+	swap();
 
 	if(!fast)await sleep(300);
 
 	print(5, 2, true, "Light & Shadow");
 	swap();
 
-	if(!fast)await sleep(1500);
+	if(!fast)await sleep(500);
 
-	// if(!fast)await sleep(1500);
-	// await sleep(1500);
-	
+	async function printText(colour:boolean){
+		print(renderer.width/2-28, renderer.height/2-16, !colour, "TOUCH T");
+		print(renderer.width/2+1, renderer.height/2-16, colour, "O START");
+		if(!fast)await sleep(500);
+
+		print(renderer.width/2+16, renderer.height/2+8, colour, "Controls:");
+		if(!fast)await sleep(200);
+		print(renderer.width/2+16, renderer.height/2+8+10, colour, " UP / W");
+		if(!fast)await sleep(200);
+		print(renderer.width/2+16, renderer.height/2+8+10+6, colour, " DOWN / S");
+	}
+
+	await printText(true);
+
+	swap();
+
+	await wait_for_touch();
+
+	await printText(false);
+
+	swap();
+
 	balls.push(new Ball(true, renderer.width/2 + 5, top*0.5 + (renderer.height-bottom)*0.5, 1, 0));
 	balls.push(new Ball(false, renderer.width/2 - 5, top*0.5 + (renderer.height-bottom)*0.5, -1, 0));
 
+	await sleep(500);
+	
 	const aiPaddle = new Paddle(false, 2, renderer.height/2 - 8, 16);
 	aiPaddle.isAi = true;
 	paddles.push(aiPaddle);
@@ -612,7 +654,7 @@ async function play_intro(fast:boolean) {
 	swap();
 }
 
-play_intro(true);
+play_intro(false);
 
 let frame = 0;
 

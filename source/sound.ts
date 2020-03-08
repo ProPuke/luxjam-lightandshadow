@@ -12,12 +12,14 @@ export enum Music {
 }
 
 export class Manager {
+	volume:number;
 	context:AudioContext;
 
 	effectBuffers = new Map<Effect, {buffer:AudioBuffer, volume:number}[]>();
 	musicBuffers = new Map<Music, {buffer:AudioBuffer, volume:number, loopStart:number}[]>();
 	
-	constructor() {
+	constructor(volume:number) {
+		this.volume = volume;
 		try {
 			this.context = new AudioContext();
 		} catch(error) {
@@ -28,16 +30,16 @@ export class Manager {
 	async load():Promise<undefined> {
 		await Promise.all([
 			this.loadEffect(Effect.debug, 'sounds/debug.mp3', 1.0),
-			this.loadEffect(Effect.boom, 'sounds/explosion1.wav', 0.6),
-			this.loadEffect(Effect.boom, 'sounds/explosion2.wav', 0.6),
-			this.loadEffect(Effect.boom, 'sounds/explosion3.wav', 0.6),
-			this.loadEffect(Effect.blip, 'sounds/blip1.wav', 0.2),
-			this.loadEffect(Effect.blip, 'sounds/blip2.wav', 0.2),
-			this.loadEffect(Effect.blip, 'sounds/blip3.wav', 0.2),
-			this.loadEffect(Effect.blip, 'sounds/blip4.wav', 0.2),
-			this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
-			this.loadEffect(Effect.paddleMiss, 'sounds/paddleMiss.wav', 1.0),
-			this.loadEffect(Effect.hasBomb, 'sounds/hasBomb.wav', 1.0),
+			this.loadEffect(Effect.boom, 'sounds/explosion1.mp3', 0.6),
+			this.loadEffect(Effect.boom, 'sounds/explosion2.mp3', 0.6),
+			this.loadEffect(Effect.boom, 'sounds/explosion3.mp3', 0.6),
+			this.loadEffect(Effect.blip, 'sounds/blip1.mp3', 0.2),
+			this.loadEffect(Effect.blip, 'sounds/blip2.mp3', 0.2),
+			this.loadEffect(Effect.blip, 'sounds/blip3.mp3', 0.2),
+			this.loadEffect(Effect.blip, 'sounds/blip4.mp3', 0.2),
+			this.loadEffect(Effect.paddle, 'sounds/paddle.mp3', 1.0),
+			this.loadEffect(Effect.paddleMiss, 'sounds/paddleMiss.mp3', 1.0),
+			this.loadEffect(Effect.hasBomb, 'sounds/hasBomb.mp3', 1.0),
 	
 			this.loadMusic(Music.main, 'music/main.mp3', 1.0, 0.0)
 		]);
@@ -46,6 +48,7 @@ export class Manager {
 	}
 
 	async loadEffect(key:Effect, path:string, volume:number):Promise<boolean> {
+		volume *= this.volume;
 		return new Promise<boolean>((fulfill) => {
 			const request = new XMLHttpRequest();
 			request.open('GET', path, true);
@@ -76,6 +79,7 @@ export class Manager {
 	}
 
 	async loadMusic(key:Music, path:string, volume:number, loopStart = 0.0):Promise<boolean> {
+		volume *= this.volume;
 		return new Promise<boolean>((fulfill) => {
 			const request = new XMLHttpRequest();
 			request.open('GET', path, true);

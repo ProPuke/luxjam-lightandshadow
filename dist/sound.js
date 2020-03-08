@@ -55,9 +55,10 @@ System.register([], function (exports_1, context_1) {
             })(Music || (Music = {}));
             exports_1("Music", Music);
             Manager = /** @class */ (function () {
-                function Manager() {
+                function Manager(volume) {
                     this.effectBuffers = new Map();
                     this.musicBuffers = new Map();
+                    this.volume = volume;
                     try {
                         this.context = new AudioContext();
                     }
@@ -71,16 +72,16 @@ System.register([], function (exports_1, context_1) {
                             switch (_a.label) {
                                 case 0: return [4 /*yield*/, Promise.all([
                                         this.loadEffect(Effect.debug, 'sounds/debug.mp3', 1.0),
-                                        this.loadEffect(Effect.boom, 'sounds/explosion1.wav', 0.6),
-                                        this.loadEffect(Effect.boom, 'sounds/explosion2.wav', 0.6),
-                                        this.loadEffect(Effect.boom, 'sounds/explosion3.wav', 0.6),
-                                        this.loadEffect(Effect.blip, 'sounds/blip1.wav', 0.2),
-                                        this.loadEffect(Effect.blip, 'sounds/blip2.wav', 0.2),
-                                        this.loadEffect(Effect.blip, 'sounds/blip3.wav', 0.2),
-                                        this.loadEffect(Effect.blip, 'sounds/blip4.wav', 0.2),
-                                        this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
-                                        this.loadEffect(Effect.paddleMiss, 'sounds/paddleMiss.wav', 1.0),
-                                        this.loadEffect(Effect.hasBomb, 'sounds/hasBomb.wav', 1.0),
+                                        this.loadEffect(Effect.boom, 'sounds/explosion1.mp3', 0.6),
+                                        this.loadEffect(Effect.boom, 'sounds/explosion2.mp3', 0.6),
+                                        this.loadEffect(Effect.boom, 'sounds/explosion3.mp3', 0.6),
+                                        this.loadEffect(Effect.blip, 'sounds/blip1.mp3', 0.2),
+                                        this.loadEffect(Effect.blip, 'sounds/blip2.mp3', 0.2),
+                                        this.loadEffect(Effect.blip, 'sounds/blip3.mp3', 0.2),
+                                        this.loadEffect(Effect.blip, 'sounds/blip4.mp3', 0.2),
+                                        this.loadEffect(Effect.paddle, 'sounds/paddle.mp3', 1.0),
+                                        this.loadEffect(Effect.paddleMiss, 'sounds/paddleMiss.mp3', 1.0),
+                                        this.loadEffect(Effect.hasBomb, 'sounds/hasBomb.mp3', 1.0),
                                         this.loadMusic(Music.main, 'music/main.mp3', 1.0, 0.0)
                                     ])];
                                 case 1:
@@ -94,6 +95,7 @@ System.register([], function (exports_1, context_1) {
                     return __awaiter(this, void 0, void 0, function () {
                         var _this = this;
                         return __generator(this, function (_a) {
+                            volume *= this.volume;
                             return [2 /*return*/, new Promise(function (fulfill) {
                                     var request = new XMLHttpRequest();
                                     request.open('GET', path, true);
@@ -128,6 +130,7 @@ System.register([], function (exports_1, context_1) {
                     return __awaiter(this, void 0, void 0, function () {
                         var _this = this;
                         return __generator(this, function (_a) {
+                            volume *= this.volume;
                             return [2 /*return*/, new Promise(function (fulfill) {
                                     var request = new XMLHttpRequest();
                                     request.open('GET', path, true);
