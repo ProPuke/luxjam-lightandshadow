@@ -431,7 +431,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                 function Ball(colour, x, y, velX, velY) {
                     this.velX = 0;
                     this.velY = 0;
-                    this.speed = 2;
+                    this.speed = 1;
                     this.isSuper = 0;
                     this.bombCount = 0;
                     this.history = [[0, 0]];
@@ -460,13 +460,13 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                 case 0:
                                     if (!this.velX && !this.velY)
                                         return [2 /*return*/];
-                                    trailLength = Math.min(this.speed, 20);
+                                    trailLength = Math.min(this.speed * 2, 20);
                                     for (_i = 0, _a = this.history; _i < _a.length; _i++) {
                                         history_1 = _a[_i];
                                         put(history_1[0], history_1[1], !this.colour);
                                     }
                                     _loop_1 = function () {
-                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, oldVelX, oldVelY, colX, colY, _a, paddles_2, paddle, paddlePhase, length2, x_1, y_1;
+                                        var hitBomb, hitPaddle, _i, bombs_2, bomb, wasScreenEdge, wasFarScreenEdge, oldVelX, oldVelY, colX, colY, _a, paddles_2, paddle, paddlePhase, length2, x_1, y_1;
                                         return __generator(this, function (_b) {
                                             switch (_b.label) {
                                                 case 0:
@@ -506,6 +506,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         if (sounds)
                                                             sounds.playEffect(sound.Effect.blip, 0.2);
                                                         wasScreenEdge = !inbounds(newX, newY);
+                                                        wasFarScreenEdge = newX <= -0.5 || newX > renderer.width - 0.5;
                                                         oldVelX = this_1.velX;
                                                         oldVelY = this_1.velY;
                                                         colX = collide(this_1.colour, newX, this_1.y);
@@ -536,6 +537,12 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         if (wasScreenEdge || hitPaddle) {
                                                             newX = this_1.x;
                                                             newY = this_1.y;
+                                                            if (hitPaddle) {
+                                                                this_1.speed = Math.min(this_1.speed + 0.3, 5);
+                                                            }
+                                                            else if (wasFarScreenEdge) {
+                                                                this_1.speed = Math.max(this_1.speed - 0.7, 1);
+                                                            }
                                                         }
                                                         else {
                                                             boom(this_1.x, this_1.y, !this_1.colour);
@@ -549,7 +556,6 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                                 }, 1000);
                                                             }
                                                         }
-                                                        // this.speed = Math.min(this.speed + 0.5, 10);
                                                     }
                                                     this_1.x = newX;
                                                     this_1.y = newY;

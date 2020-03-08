@@ -266,7 +266,7 @@ class Ball {
 	y:number;
 	velX = 0;
 	velY = 0;
-	speed = 2;
+	speed = 1;
 	isSuper = 0;
 	bombCount = 0;
 	history:[number,number][] = [[0,0]]
@@ -297,7 +297,7 @@ class Ball {
 	async update() {
 		if(!this.velX&&!this.velY) return;
 
-		const trailLength = Math.min(this.speed, 20);
+		const trailLength = Math.min(this.speed*2, 20);
 
 		for(const history of this.history){
 			put(history[0], history[1], !this.colour);
@@ -341,6 +341,7 @@ class Ball {
 				if(sounds)sounds.playEffect(sound.Effect.blip, 0.2);
 
 				const wasScreenEdge = !inbounds(newX, newY);
+				const wasFarScreenEdge = newX<=-0.5||newX>renderer.width-0.5;
 
 				const oldVelX = this.velX;
 				const oldVelY = this.velY;
@@ -379,10 +380,17 @@ class Ball {
 					newX = this.x;
 					newY = this.y;
 
+					if(hitPaddle){
+						this.speed = Math.min(this.speed + 0.3, 5);
+
+					}else if(wasFarScreenEdge){
+						this.speed = Math.max(this.speed - 0.7, 1);
+					}
+
 				}else{
 					boom(this.x, this.y, !this.colour);
 
-					if(Math.random()<1/5.0){
+					if(!this.isSuper&&Math.random()<1/5.0){
 						const x = this.x + (this.colour?4:-4);
 						const y = this.y;
 
@@ -393,8 +401,6 @@ class Ball {
 						}, 1000);
 					}
 				}
-
-				// this.speed = Math.min(this.speed + 0.5, 10);
 			}
 
 			this.x = newX;
