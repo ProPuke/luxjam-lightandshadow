@@ -339,6 +339,8 @@ class Ball {
 				let colX = collide(this.colour, newX, this.y);
 				let colY = collide(this.colour, this.x, newY);
 
+				if(!colX&&!colY) colX = colY = true;
+
 				for(const history of this.history){
 					put(history[0], history[1], this.colour);
 				}

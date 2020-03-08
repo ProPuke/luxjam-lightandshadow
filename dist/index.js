@@ -503,6 +503,8 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                                         }
                                                         colX = collide(this_1.colour, newX, this_1.y);
                                                         colY = collide(this_1.colour, this_1.x, newY);
+                                                        if (!colX && !colY)
+                                                            colX = colY = true;
                                                         for (_c = 0, _d = this_1.history; _c < _d.length; _c++) {
                                                             history_2 = _d[_c];
                                                             put(history_2[0], history_2[1], this_1.colour);
