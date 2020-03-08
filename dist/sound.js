@@ -48,6 +48,7 @@ System.register([], function (exports_1, context_1) {
                 Effect[Effect["paddle"] = 3] = "paddle";
                 Effect[Effect["paddleMiss"] = 4] = "paddleMiss";
                 Effect[Effect["hasBomb"] = 5] = "hasBomb";
+                Effect[Effect["win"] = 6] = "win";
             })(Effect || (Effect = {}));
             exports_1("Effect", Effect);
             (function (Music) {
@@ -83,6 +84,7 @@ System.register([], function (exports_1, context_1) {
                                         this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
                                         this.loadEffect(Effect.paddleMiss, 'sounds/paddle_miss.wav', 1.5),
                                         this.loadEffect(Effect.hasBomb, 'sounds/bomb_collect.wav', 1.5),
+                                        this.loadEffect(Effect.win, 'sounds/win.wav', 1.5),
                                         this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0),
                                         this.loadMusic(Music.super, 'music/super.mp3', 0.56, 0.0),
                                         this.loadMusic(Music.dnb, 'music/dnb.mp3', 0.56, 0.0)
@@ -204,6 +206,12 @@ System.register([], function (exports_1, context_1) {
                     source.start();
                     this.currentMusic = source;
                     this.currentMusicStartTime = this.context.currentTime;
+                };
+                Manager.prototype.stopMusic = function () {
+                    if (this.currentMusic) {
+                        this.currentMusic.stop();
+                        this.currentMusic = undefined;
+                    }
                 };
                 Manager.prototype.playMusicCompanion = function (music, volumeScale) {
                     if (volumeScale === void 0) { volumeScale = 1.0; }

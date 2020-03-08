@@ -212,6 +212,24 @@ window.addEventListener("keydown", (event:KeyboardEvent) => {
 		case 'ArrowDown':
 			input.down = true;
 		break;
+		// case '1':
+		// 	if(sounds)sounds.playMusicCompanion(sound.Music.super);
+		// break;
+		// case '2':
+		// 	if(sounds)sounds.stopMusicCompanion(sound.Music.super);
+		// break;
+		// case '3':
+		// 	if(sounds)sounds.playMusicCompanion(sound.Music.dnb);
+		// break;
+		// case '4':
+		// 	if(sounds)sounds.stopMusicCompanion(sound.Music.dnb);
+		// break;
+		// case '5':
+		// 	gameWinner = false;
+		// break;
+		// case '6':
+		// 	gameWinner = true;
+		// break;
 	}
 });
 
@@ -668,12 +686,95 @@ async function play_intro(fast:boolean) {
 	swap();
 }
 
-play_intro(false);
+async function play_gameover(win:boolean) {
+	if(sounds) sounds.stopMusic();
+	if(sounds) sounds.stopMusicCompanion(sound.Music.super);
+	if(sounds) sounds.stopMusicCompanion(sound.Music.dnb);
+
+	await sleep(1000);
+	if(sounds) sounds.playEffect(sound.Effect.win);
+
+	for(let i=0;i<16;i++){
+		for(let x=0;x<renderer.width;x++){
+			put(x, renderer.height/2-i, !win);
+			put(x, renderer.height/2+i-1, !win);
+		}
+
+		swap();
+
+		await sleep(100);
+	}
+
+	await sleep(500);
+
+	print(renderer.width/2-20, renderer.height/2-3, win, win?"YOU WINNER":" YOU LOSE ");
+
+	swap();
+
+	await sleep(3000);
+
+	for(let i=16;i<renderer.height/2;i++){
+		for(let x=0;x<renderer.width;x++){
+			put(x, renderer.height/2-i, !win);
+			put(x, renderer.height/2+i-1, !win);
+		}
+
+		swap();
+
+		await sleep(100);
+	}
+
+	await sleep(2000);
+
+	clear(!win);
+	swap();
+}
 
 let frame = 0;
+let gameWinner:boolean|undefined;
+
+function count_wins() {
+	let count = 0;
+	let total = 0;
+
+	for(let x=0;x<renderer.width;x++){
+		for(let y=top;y<renderer.height-bottom;y++){
+			count += get(x, y)?0:1;
+			total++;
+		}
+	}
+
+	for(let x=0;x<renderer.width/2;x++){
+		for(let y=renderer.height-8;y<renderer.height;y++){
+			put(x, y, false);
+		}
+	}
+
+	return {count, total};
+}
+
+let is_endgame = false;
+
+function begin_endgame() {
+	if(is_endgame) return;
+
+	is_endgame = true;
+
+	if(sounds)sounds.playMusicCompanion(sound.Music.dnb);
+
+	setTimeout(function(){
+		if(sounds)sounds.stopMusic();
+	}, 5*1000);
+
+	setTimeout(function(){
+		const {count, total} = count_wins();
+
+		gameWinner = (count/total)>0.5;
+	}, 10*1000);
+}
 
 async function run() {
-	while(true){
+	while(gameWinner==undefined){
 		const doAi = frame%2==0;
 
 		if(doAi){
@@ -762,6 +863,17 @@ async function run() {
 			}
 		}
 
+		if(frame%10==0){
+			const {count, total} = count_wins();
+
+			print(3, renderer.height-8, true, `${(((total-count)/total)*100).toFixed(0)}% vs ${((count/total)*100).toFixed(0)}%`);
+
+			const percentage = count/total;
+			if(percentage>0.8||percentage<0.2){
+				begin_endgame();
+			}
+		}
+
 		swap();
 		await sleep(50);
 
@@ -769,7 +881,13 @@ async function run() {
 	}
 }
 
-run();
+(async() => {
+	await play_intro(false);
+
+	await run();
+
+	await play_gameover(gameWinner==true);
+})();
 
 // print(2,2, true, "Hello");
 // swap();

@@ -4,7 +4,8 @@ export enum Effect {
 	blip,
 	paddle,
 	paddleMiss,
-	hasBomb
+	hasBomb,
+	win
 }
 
 export enum Music {
@@ -43,6 +44,7 @@ export class Manager {
 			this.loadEffect(Effect.paddle, 'sounds/paddle.wav', 1.0),
 			this.loadEffect(Effect.paddleMiss, 'sounds/paddle_miss.wav', 1.5),
 			this.loadEffect(Effect.hasBomb, 'sounds/bomb_collect.wav', 1.5),
+			this.loadEffect(Effect.win, 'sounds/win.wav', 1.5),
 
 			this.loadMusic(Music.main, 'music/main.mp3', 0.56, 0.0),
 			this.loadMusic(Music.super, 'music/super.mp3', 0.56, 0.0),
@@ -165,6 +167,13 @@ export class Manager {
 
 		this.currentMusic = source;
 		this.currentMusicStartTime = this.context.currentTime;
+	}
+
+	stopMusic() {
+		if(this.currentMusic){
+			this.currentMusic.stop();
+			this.currentMusic = undefined;
+		}
 	}
 
 	playMusicCompanion(music:Music, volumeScale = 1.0) {

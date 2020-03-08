@@ -36,7 +36,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
     };
-    var Renderer_js_1, sound, renderer, sounds, blit16, Input, aiInput, input, top, bottom, Paddle, Ball, Bomb, paddles, balls, bombs, frame;
+    var Renderer_js_1, sound, renderer, sounds, blit16, Input, aiInput, input, top, bottom, Paddle, Ball, Bomb, paddles, balls, bombs, frame, gameWinner, is_endgame;
     var __moduleName = context_1 && context_1.id;
     function put_text(x, y, message, colour, glyphs, glyph_start, glyph_width, glyph_height) {
         var cx = x;
@@ -340,13 +340,111 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             });
         });
     }
+    function play_gameover(win) {
+        return __awaiter(this, void 0, void 0, function () {
+            var i, x, i, x;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (sounds)
+                            sounds.stopMusic();
+                        if (sounds)
+                            sounds.stopMusicCompanion(sound.Music.super);
+                        if (sounds)
+                            sounds.stopMusicCompanion(sound.Music.dnb);
+                        return [4 /*yield*/, sleep(1000)];
+                    case 1:
+                        _a.sent();
+                        if (sounds)
+                            sounds.playEffect(sound.Effect.win);
+                        i = 0;
+                        _a.label = 2;
+                    case 2:
+                        if (!(i < 16)) return [3 /*break*/, 5];
+                        for (x = 0; x < renderer.width; x++) {
+                            put(x, renderer.height / 2 - i, !win);
+                            put(x, renderer.height / 2 + i - 1, !win);
+                        }
+                        swap();
+                        return [4 /*yield*/, sleep(100)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4:
+                        i++;
+                        return [3 /*break*/, 2];
+                    case 5: return [4 /*yield*/, sleep(500)];
+                    case 6:
+                        _a.sent();
+                        print(renderer.width / 2 - 20, renderer.height / 2 - 3, win, win ? "YOU WINNER" : " YOU LOSE ");
+                        swap();
+                        return [4 /*yield*/, sleep(3000)];
+                    case 7:
+                        _a.sent();
+                        i = 16;
+                        _a.label = 8;
+                    case 8:
+                        if (!(i < renderer.height / 2)) return [3 /*break*/, 11];
+                        for (x = 0; x < renderer.width; x++) {
+                            put(x, renderer.height / 2 - i, !win);
+                            put(x, renderer.height / 2 + i - 1, !win);
+                        }
+                        swap();
+                        return [4 /*yield*/, sleep(100)];
+                    case 9:
+                        _a.sent();
+                        _a.label = 10;
+                    case 10:
+                        i++;
+                        return [3 /*break*/, 8];
+                    case 11: return [4 /*yield*/, sleep(2000)];
+                    case 12:
+                        _a.sent();
+                        clear(!win);
+                        swap();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    }
+    function count_wins() {
+        var count = 0;
+        var total = 0;
+        for (var x = 0; x < renderer.width; x++) {
+            for (var y = top; y < renderer.height - bottom; y++) {
+                count += get(x, y) ? 0 : 1;
+                total++;
+            }
+        }
+        for (var x = 0; x < renderer.width / 2; x++) {
+            for (var y = renderer.height - 8; y < renderer.height; y++) {
+                put(x, y, false);
+            }
+        }
+        return { count: count, total: total };
+    }
+    function begin_endgame() {
+        if (is_endgame)
+            return;
+        is_endgame = true;
+        if (sounds)
+            sounds.playMusicCompanion(sound.Music.dnb);
+        setTimeout(function () {
+            if (sounds)
+                sounds.stopMusic();
+        }, 5 * 1000);
+        setTimeout(function () {
+            var _a = count_wins(), count = _a.count, total = _a.total;
+            gameWinner = (count / total) > 0.5;
+        }, 10 * 1000);
+    }
     function run() {
         return __awaiter(this, void 0, void 0, function () {
-            var doAi, pending, _i, balls_1, ball, _a, paddles_1, paddle, _b, paddles_2, paddle, targetY, targetY, _c, bombs_1, bomb, ball, combo, combo;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var doAi, pending, _i, balls_1, ball, _a, paddles_1, paddle, _b, paddles_2, paddle, targetY, targetY, _c, bombs_1, bomb, ball, combo, combo, _d, count, total, percentage;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
-                        if (!true) return [3 /*break*/, 3];
+                        if (!(gameWinner == undefined)) return [3 /*break*/, 3];
                         doAi = frame % 2 == 0;
                         if (doAi) {
                             aiInput.up = false;
@@ -382,7 +480,7 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                         }
                         return [4 /*yield*/, Promise.all(pending)];
                     case 1:
-                        _d.sent();
+                        _e.sent();
                         for (_b = 0, paddles_2 = paddles; _b < paddles_2.length; _b++) {
                             paddle = paddles_2[_b];
                             if (paddle.isAi) {
@@ -428,10 +526,18 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                                 block(combo > 3, renderer.width - 4, renderer.height - 4, 3, 3);
                             }
                         }
+                        if (frame % 10 == 0) {
+                            _d = count_wins(), count = _d.count, total = _d.total;
+                            print(3, renderer.height - 8, true, (((total - count) / total) * 100).toFixed(0) + "% vs " + ((count / total) * 100).toFixed(0) + "%");
+                            percentage = count / total;
+                            if (percentage > 0.8 || percentage < 0.2) {
+                                begin_endgame();
+                            }
+                        }
                         swap();
                         return [4 /*yield*/, sleep(50)];
                     case 2:
-                        _d.sent();
+                        _e.sent();
                         frame++;
                         return [3 /*break*/, 0];
                     case 3: return [2 /*return*/];
@@ -483,6 +589,24 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
                     case 'ArrowDown':
                         input.down = true;
                         break;
+                    // case '1':
+                    // 	if(sounds)sounds.playMusicCompanion(sound.Music.super);
+                    // break;
+                    // case '2':
+                    // 	if(sounds)sounds.stopMusicCompanion(sound.Music.super);
+                    // break;
+                    // case '3':
+                    // 	if(sounds)sounds.playMusicCompanion(sound.Music.dnb);
+                    // break;
+                    // case '4':
+                    // 	if(sounds)sounds.stopMusicCompanion(sound.Music.dnb);
+                    // break;
+                    // case '5':
+                    // 	gameWinner = false;
+                    // break;
+                    // case '6':
+                    // 	gameWinner = true;
+                    // break;
                 }
             });
             window.addEventListener("keyup", function (event) {
@@ -868,9 +992,24 @@ System.register(["./Renderer.js", "./sound.js", "./blit16.js"], function (export
             paddles = [];
             balls = [];
             bombs = [];
-            play_intro(false);
             frame = 0;
-            run();
+            is_endgame = false;
+            (function () { return __awaiter(void 0, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, play_intro(false)];
+                        case 1:
+                            _a.sent();
+                            return [4 /*yield*/, run()];
+                        case 2:
+                            _a.sent();
+                            return [4 /*yield*/, play_gameover(gameWinner == true)];
+                        case 3:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); })();
         }
     };
 });
