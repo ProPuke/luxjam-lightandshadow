@@ -3,8 +3,10 @@ A 48 hour gamejam entry for luxjam. Theme was "Light and shadow"
 
 Music and sound effects by ᏒαyϺαrch
 
+---
 
-## Dev diary
+
+## Development diary
 
 ### Friday 02:15
 
@@ -14,7 +16,7 @@ I don't have an engine or lib to use for the jam, so I figure I'll do something 
 It'll be low res (running on a simple 2d canvas), only use 2 colours, and probably be some kind of symetrical puzzle game - light being the empty space on one side and dark on the other, so that changing one side changes the play space of the other. I figure maybe it'll be some weird tetris thing, but I'm not sure.  
 Anyway, the first file I write is html. Huzzah!
 
-!["engine"](readme-assets/engine.png)
+<img src="readme-assets/engine.png" alt="&quote;engine&quote;" width="500" />
 
 
 ### Friday 03:23
